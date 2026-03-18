@@ -160,7 +160,7 @@ function ConnectMode({ game, onBack }: { game: MatchGame; onBack: () => void }) 
       // Wrong — flash red line
       setErrors(e => e + 1);
       setWrongAnim({ key: Date.now(), leftId: selectedLeft, rightId: pair.id });
-      beep('error');
+      beep('no');
       setTimeout(() => setWrongAnim(null), 600);
     }
   }
@@ -375,7 +375,7 @@ function TypeMode({ game, onBack }: { game: MatchGame; onBack: () => void }) {
       if (allCorrect) setTimeout(() => setDone(true), 500);
     } else {
       setErrors(e => e + 1);
-      beep('error');
+      beep('no');
       setTimeout(() => {
         setStates(prev => new Map(prev).set(pair.id, 'idle'));
         setAnswers(prev => new Map(prev).set(pair.id, ''));
