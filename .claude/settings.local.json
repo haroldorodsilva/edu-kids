@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-vite@latest digiletras --template react-ts)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(sed -i 's/- \\\\[ \\\\] \\\\*\\\\*TASK-S2-0/- [x] **TASK-S2-0/g' ../../tasks.md)",
+      "Read(//c/Users/Weback/Desktop/github/**)",
+      "Bash(node -e \"const p = require\\(''./node_modules/react-router-dom/package.json''\\); console.log\\(p.version\\)\")",
+      "Bash(node:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}

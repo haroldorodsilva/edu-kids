@@ -1,0 +1,11 @@
+{
+  "buildCommand": "cd digiletras && npm run build",
+  "outputDirectory": "digiletras/dist",
+  "installCommand": "cd digiletras && npm install && npm install @anthropic-ai/sdk --save",
+  "framework": null,
+  "functions": {
+    "api/*.ts": {
+      "runtime": "@vercel/edge"
+    }
+  }
+}
