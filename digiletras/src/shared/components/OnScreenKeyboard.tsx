@@ -32,16 +32,16 @@ export default function OnScreenKeyboard({
   function keyStyle(key: string): React.CSSProperties {
     const isPressed = pressed === key;
     const feedbackBg =
-      isPressed && lastFeedback === 'ok' ? '#C8E6C9' :
-      isPressed && lastFeedback === 'no' ? '#FFCDD2' :
-      isPressed ? '#E0E0E0' : 'white';
+      isPressed && lastFeedback === 'ok' ? 'var(--feedback-ok-light)' :
+      isPressed && lastFeedback === 'no' ? 'var(--feedback-error-light)' :
+      isPressed ? 'var(--neutral-200)' : 'white';
 
     return {
       minWidth: 32,
       minHeight: 44,
       padding: '0 6px',
       backgroundColor: feedbackBg,
-      border: '1.5px solid #E0E0E0',
+      border: '1.5px solid var(--neutral-200)',
       borderRadius: 8,
       fontSize: 16,
       fontWeight: 700,
@@ -110,8 +110,8 @@ export default function OnScreenKeyboard({
               style={{
                 ...keyStyle('Backspace'),
                 flex: 1,
-                backgroundColor: pressed === 'Backspace' ? '#FFCDD2' : '#FFE0E0',
-                color: '#C62828',
+                backgroundColor: pressed === 'Backspace' ? 'var(--feedback-error-light)' : '#FFE0E0',
+                color: 'var(--feedback-error-dark)',
                 fontSize: 20,
               }}
               aria-label="Apagar"

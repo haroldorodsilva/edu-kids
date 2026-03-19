@@ -19,6 +19,7 @@ export const GAME_THEMES: GameTheme[] = [
   { id: 'firstletter',  icon: '🔤', label: 'Letra Inicial', color: '#AD1457', bg: '#FCE4EC' },
   { id: 'buildsentence',icon: '📝', label: 'Montar Frase',  color: '#00695C', bg: '#E0F2F1' },
   { id: 'storypicker',  icon: '📖', label: 'Histórias',     color: '#1565C0', bg: '#E3F2FD' },
+  { id: 'interactive',   icon: '📚', label: 'Histórias Interativas', color: '#7E6FD4', bg: '#EDE9F9' },
   { id: 'matchgame',    icon: '🔗', label: 'Ligar / Digitar', color: '#6A1B9A', bg: '#F3E5F5' },
   { id: 'coloring',     icon: '🎨', label: 'Pintar',        color: '#E65100', bg: '#FFF3E0' },
 ];

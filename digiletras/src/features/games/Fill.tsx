@@ -6,8 +6,7 @@ import { beep, speak } from '../../shared/utils/audio';
 import { isTouchDevice } from '../../shared/utils/device';
 import { useKeyboardInput } from '../../shared/hooks/useKeyboardInput';
 import { recordGamePlayed, recordWordAttempt } from '../../shared/utils/sessionStats';
-import DoneCard from '../../shared/components/DoneCard';
-import ProgressBar from '../../shared/components/ProgressBar';
+import GameLayout from '../../shared/components/GameLayout';
 import OnScreenKeyboard from '../../shared/components/OnScreenKeyboard';
 
 interface Props {
@@ -109,19 +108,13 @@ export default function Fill({ onBack, wordPool, rounds, onComplete }: Props) {
   // Contagem de lacunas restantes
   const remaining = blankIndices.length - currentBlankOrder;
 
-  if (done) return <DoneCard score={{ correct, total: effectiveRounds }} onBack={onBack} />;
   if (!current) return null;
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #fff8e1 0%, #ffcc02 100%)' }}>
-      <ProgressBar current={round} total={effectiveRounds} color="#FF6F00" />
-      <div className="flex items-center gap-3 w-full mb-2">
-        <button onClick={onBack} className="text-orange-800 text-2xl font-bold">←</button>
-        <h1 className="text-2xl font-bold text-orange-800">✏️ Completar</h1>
-      </div>
+    <GameLayout gameId="fill" title="✏️ Completar" round={round} totalRounds={effectiveRounds} done={done} correct={correct} onBack={onBack}>
       <div className="text-8xl mb-2 animate-bounce-custom">{current.emoji}</div>
-      <p className="text-orange-700 mb-2 text-lg">Complete as letras!</p>
-      <p className="text-orange-500 text-sm mb-4">
+      <p className="mb-2 text-lg" style={{ color: 'var(--game-color)' }}>Complete as letras!</p>
+      <p className="text-sm mb-4" style={{ color: 'var(--game-color)', opacity: 0.7 }}>
         {remaining > 0 ? `Faltam ${remaining} letra${remaining > 1 ? 's' : ''}` : '✅'}
       </p>
 
@@ -135,8 +128,8 @@ export default function Fill({ onBack, wordPool, rounds, onComplete }: Props) {
               key={i}
               className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border-4 transition-all duration-300"
               style={{
-                borderColor: !slot.blank ? '#4CAF50' : slot.filled ? '#4CAF50' : isCurrentBlank ? '#FF9800' : '#ddd',
-                backgroundColor: !slot.blank ? '#C8E6C9' : slot.filled ? '#C8E6C9' : isCurrentBlank ? '#FFF3E0' : 'white',
+                borderColor: !slot.blank ? 'var(--feedback-ok)' : slot.filled ? 'var(--feedback-ok)' : isCurrentBlank ? 'var(--feedback-current)' : 'var(--neutral-200)',
+                backgroundColor: !slot.blank ? 'var(--feedback-ok-light)' : slot.filled ? 'var(--feedback-ok-light)' : isCurrentBlank ? 'var(--feedback-current-light)' : 'white',
                 transform: isCurrentBlank ? 'scale(1.15)' : 'scale(1)',
                 borderStyle: slot.blank && !slot.filled ? 'dashed' : 'solid',
               }}
@@ -150,8 +143,8 @@ export default function Fill({ onBack, wordPool, rounds, onComplete }: Props) {
       {isTouch ? (
         <OnScreenKeyboard onKey={handleLetter} lastFeedback={feedback} />
       ) : (
-        <p className="text-orange-600 text-sm">Digite a letra no teclado</p>
+        <p className="text-sm" style={{ color: 'var(--game-color)', opacity: 0.7 }}>Digite a letra no teclado</p>
       )}
-    </div>
+    </GameLayout>
   );
 }

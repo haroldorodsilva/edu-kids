@@ -4,8 +4,7 @@ import type { Word } from '../../shared/data/words';
 import { shuffle } from '../../shared/utils/helpers';
 import { beep, speak } from '../../shared/utils/audio';
 import { useShake } from '../../shared/hooks/useShake';
-import DoneCard from '../../shared/components/DoneCard';
-import ProgressBar from '../../shared/components/ProgressBar';
+import GameLayout from '../../shared/components/GameLayout';
 
 interface Props {
   onBack: () => void;
@@ -68,18 +67,12 @@ export default function Syllable({ onBack, wordPool, rounds, onComplete }: Props
     }
   }
 
-  if (done) return <DoneCard score={{ correct, total: effectiveRounds }} onBack={onBack} />;
   if (!current) return null;
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%)' }}>
-      <ProgressBar current={round} total={effectiveRounds} color="#7B1FA2" />
-      <div className="flex items-center gap-3 w-full mb-2">
-        <button onClick={onBack} className="text-purple-800 text-2xl font-bold">←</button>
-        <h1 className="text-2xl font-bold text-purple-800">🧩 Sílabas</h1>
-      </div>
+    <GameLayout gameId="syllable" title="🧩 Sílabas" round={round} totalRounds={effectiveRounds} done={done} correct={correct} onBack={onBack}>
       <div className="text-8xl mb-2 animate-bounce-custom">{current.emoji}</div>
-      <p className="text-purple-700 mb-4 text-lg">Monte a palavra!</p>
+      <p className="mb-4 text-lg" style={{ color: 'var(--game-color)' }}>Monte a palavra!</p>
 
       {/* Slots */}
       <div className={`flex gap-2 mb-8 ${shake ? 'animate-shake' : ''}`}>
@@ -88,9 +81,9 @@ export default function Syllable({ onBack, wordPool, rounds, onComplete }: Props
             key={i}
             className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-bold border-4 transition-all duration-300"
             style={{
-              borderColor: i < selected.length ? '#4CAF50' : '#9C27B0',
-              backgroundColor: i < selected.length ? '#C8E6C9' : 'white',
-              color: i < selected.length ? '#2E7D32' : '#9C27B0',
+              borderColor: i < selected.length ? 'var(--feedback-ok)' : 'var(--game-color)',
+              backgroundColor: i < selected.length ? 'var(--feedback-ok-light)' : 'white',
+              color: i < selected.length ? 'var(--feedback-ok-dark)' : 'var(--game-color)',
             }}
           >
             {i < selected.length ? selected[i] : '?'}
@@ -106,12 +99,12 @@ export default function Syllable({ onBack, wordPool, rounds, onComplete }: Props
             onClick={() => handleSyllable(syl)}
             disabled={selected.includes(syl) && current.syllables.filter(s => s === syl).length <= selected.filter(s => s === syl).length}
             className="px-6 py-4 rounded-2xl font-bold text-xl text-white shadow-lg transition-transform active:scale-95 disabled:opacity-40"
-            style={{ backgroundColor: '#7B1FA2' }}
+            style={{ backgroundColor: 'var(--game-color)' }}
           >
             {syl}
           </button>
         ))}
       </div>
-    </div>
+    </GameLayout>
   );
 }

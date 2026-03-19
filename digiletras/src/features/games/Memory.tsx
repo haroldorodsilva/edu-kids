@@ -3,6 +3,7 @@ import { words } from '../../shared/data/words';
 import type { Word } from '../../shared/data/words';
 import { shuffle } from '../../shared/utils/helpers';
 import { beep, speak } from '../../shared/utils/audio';
+import { getTheme } from '../../shared/data/gameThemes';
 
 interface Props {
   onBack: () => void;
@@ -39,6 +40,7 @@ function saveBestScore(level: number, attempts: number) {
 }
 
 export default function Memory({ onBack, wordPool, onComplete }: Props) {
+  const theme = getTheme('memory');
   const [level, setLevel] = useState(1);
   const basePool = wordPool ?? words;
   const numPairs = 3 + level;
@@ -100,19 +102,19 @@ export default function Memory({ onBack, wordPool, onComplete }: Props) {
     const isRecord = bestScore === attempts;
 
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4" style={{ background: 'linear-gradient(135deg, #b2dfdb 0%, #26a69a 100%)' }}>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4" style={{ background: `linear-gradient(135deg, ${theme.bg} 0%, ${theme.color} 100%)` }}>
         <div className="bg-white rounded-3xl p-8 shadow-2xl text-center animate-pop">
           <div className="text-6xl mb-3">{isRecord ? '🏆' : '🎉'}</div>
-          <h2 className="text-2xl font-bold text-teal-700 mb-1">Nível {level} completo!</h2>
+          <h2 className="text-2xl font-bold mb-1" style={{ color: theme.color }}>Nível {level} completo!</h2>
           <p className="text-gray-600 mb-1">Tentativas: <strong>{attempts}</strong></p>
           {bestScore !== null && (
-            <p className="text-sm mb-4" style={{ color: isRecord ? '#E91E63' : '#888' }}>
+            <p className="text-sm mb-4" style={{ color: isRecord ? 'var(--feedback-error)' : 'var(--neutral-400)' }}>
               {isRecord ? '⭐ Novo recorde!' : `Recorde: ${bestScore} tentativas`}
             </p>
           )}
           <div className="flex gap-3 justify-center mt-2">
             <button onClick={onBack} className="px-5 py-3 bg-gray-200 rounded-2xl font-bold text-gray-700">← Voltar</button>
-            <button onClick={nextLevel} className="px-5 py-3 bg-teal-600 rounded-2xl font-bold text-white">Próximo Nível →</button>
+            <button onClick={nextLevel} className="px-5 py-3 rounded-2xl font-bold text-white" style={{ backgroundColor: theme.color }}>Próximo Nível →</button>
           </div>
         </div>
       </div>
@@ -120,16 +122,16 @@ export default function Memory({ onBack, wordPool, onComplete }: Props) {
   }
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #b2dfdb 0%, #80cbc4 100%)' }}>
+    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: `linear-gradient(135deg, ${theme.bg} 0%, ${theme.color}44 100%)` }}>
       <div className="flex justify-between w-full max-w-lg mb-4">
         <div className="flex items-center gap-2">
-          <button onClick={onBack} className="text-teal-800 text-2xl font-bold">←</button>
-          <h1 className="text-2xl font-bold text-teal-800">🧠 Memória</h1>
+          <button onClick={onBack} className="text-2xl font-bold" style={{ color: theme.color }} aria-label="Voltar ao menu">←</button>
+          <h1 className="text-2xl font-bold" style={{ color: theme.color }}>🧠 Memória</h1>
         </div>
         <div className="text-right">
-          <p className="text-teal-700 font-semibold text-sm">Nível {level} • Tent: {attempts}</p>
+          <p className="font-semibold text-sm" style={{ color: theme.color }}>Nível {level} • Tent: {attempts}</p>
           {bestScore !== null && (
-            <p className="text-teal-600 text-xs">🏆 Recorde: {bestScore}</p>
+            <p className="text-xs" style={{ color: theme.color, opacity: 0.7 }}>🏆 Recorde: {bestScore}</p>
           )}
         </div>
       </div>
@@ -143,10 +145,10 @@ export default function Memory({ onBack, wordPool, onComplete }: Props) {
               onClick={() => handleFlip(card)}
               className="aspect-square rounded-2xl flex flex-col items-center justify-center text-sm font-bold transition-all duration-300 border-4"
               style={{
-                backgroundColor: isMatched ? '#C8E6C9' : isFlipped ? '#FFF9C4' : '#7B1FA2',
-                borderColor: isMatched ? '#4CAF50' : isFlipped ? '#FFC107' : '#4A148C',
+                backgroundColor: isMatched ? 'var(--feedback-ok-light)' : isFlipped ? 'var(--feedback-celebrate-light)' : theme.color,
+                borderColor: isMatched ? 'var(--feedback-ok)' : isFlipped ? 'var(--feedback-celebrate)' : `${theme.color}CC`,
                 opacity: isMatched ? 0.7 : 1,
-                color: isMatched || isFlipped ? '#333' : 'white',
+                color: isMatched || isFlipped ? 'var(--neutral-800)' : 'white',
               }}
             >
               {isFlipped || isMatched ? (

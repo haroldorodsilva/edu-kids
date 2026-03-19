@@ -10,6 +10,8 @@ import MatchGame from './features/games/MatchGame';
 import Coloring from './features/games/Coloring';
 import StoryPicker from './features/stories/StoryPicker';
 import StoryPlayer from './features/stories/StoryPlayer';
+import InteractiveStoryPicker from './features/stories/InteractiveStoryPicker';
+import InteractiveStoryPlayer from './features/stories/InteractiveStoryPlayer';
 import AdminPanel from './features/admin/AdminPanel';
 import PathScreen from './features/path/PathScreen';
 import FreePlayScreen from './features/freeplay/FreePlayScreen';
@@ -17,24 +19,24 @@ import LessonRunner from './features/lesson/LessonRunner';
 import type { Word } from './shared/data/words';
 
 // ── Route state type for free-play games ────────────────────────────────────
-interface GameState { wordPool?: Word[] }
+interface GameState { wordPool?: Word[]; rounds?: number }
 
 // ── Free-play game wrappers (connect router → game props) ────────────────────
 
 function SyllableRoute() {
   const nav = useNavigate();
   const { state } = useLocation() as { state: GameState | null };
-  return <Syllable wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
+  return <Syllable wordPool={state?.wordPool} rounds={state?.rounds} onBack={() => nav('/freeplay')} />;
 }
 function QuizRoute() {
   const nav = useNavigate();
   const { state } = useLocation() as { state: GameState | null };
-  return <Quiz wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
+  return <Quiz wordPool={state?.wordPool} rounds={state?.rounds} onBack={() => nav('/freeplay')} />;
 }
 function FillRoute() {
   const nav = useNavigate();
   const { state } = useLocation() as { state: GameState | null };
-  return <Fill wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
+  return <Fill wordPool={state?.wordPool} rounds={state?.rounds} onBack={() => nav('/freeplay')} />;
 }
 function MemoryRoute() {
   const nav = useNavigate();
@@ -44,16 +46,17 @@ function MemoryRoute() {
 function WriteRoute() {
   const nav = useNavigate();
   const { state } = useLocation() as { state: GameState | null };
-  return <Write wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
+  return <Write wordPool={state?.wordPool} rounds={state?.rounds} onBack={() => nav('/freeplay')} />;
 }
 function FirstLetterRoute() {
   const nav = useNavigate();
   const { state } = useLocation() as { state: GameState | null };
-  return <FirstLetter wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
+  return <FirstLetter wordPool={state?.wordPool} rounds={state?.rounds} onBack={() => nav('/freeplay')} />;
 }
 function BuildSentenceRoute() {
   const nav = useNavigate();
-  return <BuildSentence onBack={() => nav('/freeplay')} />;
+  const { state } = useLocation() as { state: GameState | null };
+  return <BuildSentence rounds={state?.rounds} onBack={() => nav('/freeplay')} />;
 }
 function MatchGameRoute() {
   const nav = useNavigate();
@@ -69,6 +72,26 @@ function StoryPickerRoute() {
     <StoryPicker
       onSelect={(id, mode) => nav(`/stories/${id}/${mode}`)}
       onBack={() => nav('/freeplay')}
+    />
+  );
+}
+function InteractiveStoryPickerRoute() {
+  const nav = useNavigate();
+  return (
+    <InteractiveStoryPicker
+      onSelect={(id) => nav(`/interactive/${id}`)}
+      onBack={() => nav('/freeplay')}
+    />
+  );
+}
+function InteractiveStoryPlayerRoute() {
+  const nav = useNavigate();
+  const { storyId } = useParams<{ storyId: string }>();
+  if (!storyId) return null;
+  return (
+    <InteractiveStoryPlayer
+      storyId={storyId}
+      onBack={() => nav('/freeplay/interactive')}
     />
   );
 }
@@ -101,7 +124,7 @@ function FreePlayRoute() {
   const nav = useNavigate();
   return (
     <FreePlayScreen
-      onSelect={(game, wordPool) => nav(`/freeplay/${game}`, { state: { wordPool } })}
+      onSelect={(game, wordPool, rounds) => nav(`/freeplay/${game}`, { state: { wordPool, rounds } })}
       onBack={() => nav('/')}
       onAdmin={() => nav('/admin')}
     />
@@ -136,6 +159,8 @@ const router = createHashRouter([
   { path: '/freeplay/matchgame',         element: <MatchGameRoute /> },
   { path: '/freeplay/coloring',          element: <ColoringRoute /> },
   { path: '/freeplay/storypicker',       element: <StoryPickerRoute /> },
+  { path: '/freeplay/interactive',       element: <InteractiveStoryPickerRoute /> },
+  { path: '/interactive/:storyId',       element: <InteractiveStoryPlayerRoute /> },
   { path: '/stories/:storyId/:mode',     element: <StoryPlayerRoute /> },
   { path: '/lesson/:unitId/:lessonId',   element: <LessonRoute /> },
   { path: '/admin',                      element: <AdminRoute /> },

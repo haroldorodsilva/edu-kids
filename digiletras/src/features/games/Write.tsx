@@ -6,8 +6,7 @@ import { beep, speak } from '../../shared/utils/audio';
 import { isTouchDevice } from '../../shared/utils/device';
 import { useKeyboardInput } from '../../shared/hooks/useKeyboardInput';
 import { recordGamePlayed, recordWordAttempt } from '../../shared/utils/sessionStats';
-import DoneCard from '../../shared/components/DoneCard';
-import ProgressBar from '../../shared/components/ProgressBar';
+import GameLayout from '../../shared/components/GameLayout';
 import OnScreenKeyboard from '../../shared/components/OnScreenKeyboard';
 
 interface Props {
@@ -89,22 +88,17 @@ export default function Write({ onBack, wordPool, rounds, onComplete }: Props) {
   // Teclado físico (desktop) via hook centralizado
   useKeyboardInput({ onChar: handleLetter, active: !isTouch });
 
-  if (done) return <DoneCard score={{ correct, total: effectiveRounds }} onBack={onBack} />;
   if (!current) return null;
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #ede7f6 0%, #9575cd 100%)' }}>
-      <ProgressBar current={round} total={effectiveRounds} color="#4527A0" />
-      <div className="flex items-center gap-3 w-full mb-2">
-        <button onClick={onBack} className="text-purple-900 text-2xl font-bold">←</button>
-        <h1 className="text-2xl font-bold text-purple-900">✍️ Escrever</h1>
-      </div>
+    <GameLayout gameId="write" title="✍️ Escrever" round={round} totalRounds={effectiveRounds} done={done} correct={correct} onBack={onBack}>
       <div className="text-9xl mb-2 animate-bounce-custom">{current.emoji}</div>
       <div className="flex items-center gap-3 mb-4">
-        <p className="text-purple-700 text-lg">O que é isso? Digite!</p>
+        <p className="text-lg" style={{ color: 'var(--game-color)' }}>O que é isso? Digite!</p>
         <button
           onClick={() => speak(current.word)}
-          className="px-3 py-1.5 bg-purple-200 rounded-xl text-purple-800 font-bold text-sm active:scale-95 transition-transform"
+          className="px-3 py-1.5 rounded-xl font-bold text-sm active:scale-95 transition-transform"
+          style={{ backgroundColor: 'var(--game-bg)', color: 'var(--game-color)' }}
           aria-label="Ouvir a palavra"
         >
           🔊 Ouvir
@@ -122,8 +116,8 @@ export default function Write({ onBack, wordPool, rounds, onComplete }: Props) {
               key={i}
               className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border-4 transition-all duration-300"
               style={{
-                borderColor: isFilled ? '#4CAF50' : isCurrent ? '#FF9800' : '#ddd',
-                backgroundColor: isFilled ? '#C8E6C9' : isCurrent ? '#FFF3E0' : 'white',
+                borderColor: isFilled ? 'var(--feedback-ok)' : isCurrent ? 'var(--feedback-current)' : 'var(--neutral-200)',
+                backgroundColor: isFilled ? 'var(--feedback-ok-light)' : isCurrent ? 'var(--feedback-current-light)' : 'white',
                 transform: isCurrent ? 'scale(1.15)' : 'scale(1)',
                 borderStyle: !isFilled ? 'dashed' : 'solid',
               }}
@@ -137,8 +131,8 @@ export default function Write({ onBack, wordPool, rounds, onComplete }: Props) {
       {isTouch ? (
         <OnScreenKeyboard onKey={handleLetter} lastFeedback={feedback} />
       ) : (
-        <p className="text-purple-600 text-sm">Digite no teclado</p>
+        <p className="text-sm" style={{ color: 'var(--game-color)', opacity: 0.7 }}>Digite no teclado</p>
       )}
-    </div>
+    </GameLayout>
   );
 }

@@ -251,7 +251,7 @@ function ConnectMode({ game, onBack }: { game: MatchGame; onBack: () => void }) 
               <line key={wrongAnim.key}
                 className="anim-wrong-line"
                 x1={s.x} y1={s.y} x2={e.x} y2={e.y}
-                stroke="#E53935" strokeWidth="3.5" strokeLinecap="round"
+                stroke="var(--feedback-error)" strokeWidth="3.5" strokeLinecap="round"
               />
             );
           })()}
@@ -458,8 +458,8 @@ function TypeMode({ game, onBack }: { game: MatchGame; onBack: () => void }) {
               <div style={{
                 ...cardBase,
                 width: '40%',
-                border: `2px solid ${st === 'correct' ? 'var(--color-success)' : st === 'wrong' ? '#E53935' : 'var(--color-border)'}`,
-                background: st === 'correct' ? '#00B89415' : st === 'wrong' ? '#FFEBEE' : 'var(--color-surface)',
+                border: `2px solid ${st === 'correct' ? 'var(--color-success)' : st === 'wrong' ? 'var(--feedback-error)' : 'var(--color-border)'}`,
+                background: st === 'correct' ? '#00B89415' : st === 'wrong' ? 'var(--feedback-error-light)' : 'var(--color-surface)',
                 boxShadow: 'var(--shadow-card)',
                 gap: 6,
                 padding: '8px 6px',
@@ -484,7 +484,7 @@ function TypeMode({ game, onBack }: { game: MatchGame; onBack: () => void }) {
                         width: '100%',
                         padding: '6px 8px',
                         borderRadius: 'var(--radius-md)',
-                        border: `2px solid ${st === 'wrong' ? '#E53935' : 'var(--color-border)'}`,
+                        border: `2px solid ${st === 'wrong' ? 'var(--feedback-error)' : 'var(--color-border)'}`,
                         fontSize: 18, fontWeight: 800,
                         color: 'var(--color-text)',
                         outline: 'none',

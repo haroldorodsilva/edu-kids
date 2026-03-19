@@ -1,7 +1,9 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
 import { curriculum } from '../../shared/progression/curriculum';
 import { useProgress } from '../../shared/progression/useProgress';
 import type { Lesson, Unit } from '../../shared/progression/types';
+import AgeSelector from '../../shared/components/AgeSelector';
+import { getSavedAgeGroup, getAgeGroup, type AgeGroup } from '../../shared/config/ageGroups';
 
 interface Props {
   onStartLesson: (unitId: string, lessonId: string) => void;
@@ -41,13 +43,13 @@ interface BannerLayout {
 type LayoutItem = NodeLayout | BannerLayout;
 
 // ─── Pre-compute layout ────────────────────────────────────────
-function buildLayout(): { items: LayoutItem[]; nodes: NodeLayout[]; totalH: number } {
+function buildLayout(units: Unit[]): { items: LayoutItem[]; nodes: NodeLayout[]; totalH: number } {
   const items: LayoutItem[] = [];
   let y = PAD_TOP;
   let gi = 0;
 
-  for (let ui = 0; ui < curriculum.length; ui++) {
-    const unit = curriculum[ui];
+  for (let ui = 0; ui < units.length; ui++) {
+    const unit = units[ui];
     items.push({ kind: 'banner', unit, ui, top: y });
     y += BANNER_H + BANNER_MB;
 
@@ -86,7 +88,17 @@ function segD(p: NodeLayout, c: NodeLayout): string {
 export default function PathScreen({ onStartLesson, onFreePlay }: Props) {
   const { progress, isLessonUnlocked } = useProgress();
   const scrollRef  = useRef<HTMLDivElement>(null);
-  const { items, nodes, totalH } = useMemo(buildLayout, []);
+  const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(() => getSavedAgeGroup());
+  const [showAgePicker, setShowAgePicker] = useState(!ageGroup);
+
+  // Filter curriculum by age group
+  const ageConfig = ageGroup ? getAgeGroup(ageGroup) : null;
+  const visibleCurriculum = useMemo(() => {
+    if (!ageConfig || ageConfig.curriculumUnits.length === 0) return curriculum;
+    return curriculum.filter(u => ageConfig.curriculumUnits.includes(u.id));
+  }, [ageConfig]);
+
+  const { items, nodes, totalH } = useMemo(() => buildLayout(visibleCurriculum), [visibleCurriculum]);
 
   const allLessonIds = useMemo(() => curriculum.flatMap(u => u.lessons.map(l => l.id)), []);
   const xp        = progress.totalXP;
@@ -103,57 +115,92 @@ export default function PathScreen({ onStartLesson, onFreePlay }: Props) {
     }
   }, []);
 
+  // Show age picker on first visit or when manually toggled
+  if (showAgePicker) {
+    return (
+      <AgeSelector
+        current={ageGroup}
+        onSelect={(id) => {
+          setAgeGroup(id);
+          setShowAgePicker(false);
+        }}
+      />
+    );
+  }
+
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
       height: '100dvh', overflow: 'hidden',
-      background: 'var(--gradient-hero)',
+      background: 'linear-gradient(170deg, #EDE9F9 0%, #F5F0E8 40%, #FFF8EF 100%)',
     }}>
 
       {/* ── Header ───────────────────────────────────────────── */}
       <header style={{
         flexShrink: 0,
-        background: 'rgba(55,38,200,0.80)',
+        background: 'rgba(255,255,255,0.85)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.09)',
-        padding: '12px 16px 10px',
+        borderBottom: '1.5px solid var(--color-border)',
+        padding: '14px 16px 10px',
         zIndex: 20,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 28 }}>🔤</span>
+            <span style={{ fontSize: 32 }}>🔤</span>
             <div>
-              <div style={{ fontSize: 19, fontWeight: 800, color: '#fff', letterSpacing: '-0.4px' }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.4px' }}>
                 DigiLetras
               </div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-2)' }}>
                 Nível {level} · {xp} XP total
               </div>
             </div>
           </div>
           <div style={{
-            background: 'rgba(253,203,110,0.16)',
-            border: '1.5px solid rgba(253,203,110,0.40)',
-            borderRadius: 999, padding: '6px 13px',
-            display: 'flex', alignItems: 'center', gap: 5,
+            display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <span style={{ fontSize: 15 }}>⭐</span>
-            <span style={{ fontWeight: 800, color: '#FDCB6E', fontSize: 13 }}>{xp} XP</span>
+            {ageConfig && (
+              <button
+                onClick={() => setShowAgePicker(true)}
+                style={{
+                  background: `${ageConfig.color}18`,
+                  border: `2px solid ${ageConfig.color}33`,
+                  borderRadius: 999, padding: '8px 14px',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  cursor: 'pointer', outline: 'none',
+                  minHeight: 'var(--touch-min)',
+                }}
+                aria-label="Mudar perfil de idade"
+              >
+                <span style={{ fontSize: 18 }}>{ageConfig.emoji}</span>
+                <span style={{ fontWeight: 700, color: ageConfig.color, fontSize: 12 }}>{ageConfig.ageRange}</span>
+              </button>
+            )}
+            <div style={{
+              background: '#FFF8E1',
+              border: '2px solid #FFE08233',
+              borderRadius: 999, padding: '8px 14px',
+              display: 'flex', alignItems: 'center', gap: 6,
+              minHeight: 'var(--touch-min)',
+            }}>
+              <span style={{ fontSize: 18 }}>⭐</span>
+              <span style={{ fontWeight: 800, color: '#D4A017', fontSize: 14 }}>{xp} XP</span>
+            </div>
           </div>
         </div>
 
         {/* XP bar */}
-        <div style={{ marginTop: 8, background: 'rgba(255,255,255,0.13)', borderRadius: 999, height: 5 }}>
+        <div style={{ marginTop: 8, background: 'var(--color-border)', borderRadius: 999, height: 6 }}>
           <div style={{
             height: '100%', borderRadius: 999,
-            background: 'linear-gradient(90deg,#FDCB6E,#E17055)',
+            background: 'linear-gradient(90deg,#FFD180,#F4845F)',
             width: `${xpInLevel}%`, transition: 'width .6s ease',
           }} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)' }}>Nível {level}</span>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)' }}>
+          <span style={{ fontSize: 10, color: 'var(--color-text-3)' }}>Nível {level}</span>
+          <span style={{ fontSize: 10, color: 'var(--color-text-3)' }}>
             {xpInLevel}/100 → Nível {level + 1}
           </span>
         </div>
@@ -175,7 +222,7 @@ export default function PathScreen({ onStartLesson, onFreePlay }: Props) {
             <path
               d={fullPathD(nodes)}
               fill="none"
-              stroke="rgba(255,255,255,0.15)"
+              stroke="rgba(126,111,212,0.13)"
               strokeWidth={TRACK_W}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -191,7 +238,7 @@ export default function PathScreen({ onStartLesson, onFreePlay }: Props) {
 
               if (!unlocked) return null;
 
-              const color  = result ? node.unit.color : 'rgba(255,255,255,0.35)';
+              const color  = result ? node.unit.color : 'rgba(126,111,212,0.22)';
               const dashed = !result || !nextUnlocked;
 
               return (
@@ -219,7 +266,7 @@ export default function PathScreen({ onStartLesson, onFreePlay }: Props) {
                   key={`ring-${node.lesson.id}`}
                   cx={node.cx} cy={node.cy}
                   r={NODE_R + 10}
-                  fill="rgba(253,203,110,0.18)"
+                  fill="rgba(255,209,128,0.22)"
                   style={{ animation: 'pulse-scale 1.8s ease-in-out infinite' }}
                 />
               );
@@ -253,15 +300,15 @@ export default function PathScreen({ onStartLesson, onFreePlay }: Props) {
                   filter: 'blur(20px)',
                 }} />
 
-                <span style={{ fontSize: 38, lineHeight: 1, flexShrink: 0 }}>{banner.unit.emoji}</span>
+                <span style={{ fontSize: 40, lineHeight: 1, flexShrink: 0 }}>{banner.unit.emoji}</span>
                 <div>
                   <div style={{
-                    fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.60)',
+                    fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.70)',
                     textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2,
                   }}>
                     Unidade {banner.ui + 1}
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>
                     {banner.unit.title}
                   </div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.70)', marginTop: 2 }}>
@@ -303,21 +350,21 @@ export default function PathScreen({ onStartLesson, onFreePlay }: Props) {
                     borderRadius: '50%',
                     border: `4px solid ${
                       result    ? node.unit.color
-                      : isCurrent ? '#FDCB6E'
-                      : 'rgba(255,255,255,0.18)'
+                      : isCurrent ? '#FFD180'
+                      : 'rgba(126,111,212,0.15)'
                     }`,
                     background: result
-                      ? `linear-gradient(145deg, ${node.unit.bg}, ${node.unit.color}55)`
+                      ? `linear-gradient(145deg, ${node.unit.bg}, ${node.unit.color}44)`
                       : isCurrent
-                      ? 'rgba(255,255,255,0.96)'
-                      : 'rgba(255,255,255,0.07)',
+                      ? 'rgba(255,255,255,0.98)'
+                      : 'rgba(255,255,255,0.45)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 26,
+                    fontSize: 28,
                     cursor: unlocked ? 'pointer' : 'default',
                     boxShadow: isCurrent
-                      ? '0 0 0 7px rgba(253,203,110,0.25), 0 4px 16px rgba(253,203,110,0.50)'
+                      ? '0 0 0 7px rgba(255,209,128,0.28), 0 4px 16px rgba(255,209,128,0.40)'
                       : result
-                      ? `0 4px 14px ${node.unit.color}60`
+                      ? `0 4px 14px ${node.unit.color}40`
                       : 'none',
                     transition: 'transform .14s, box-shadow .14s',
                     animation: isCurrent ? 'pulse-scale 1.7s ease-in-out infinite' : 'none',
@@ -342,9 +389,8 @@ export default function PathScreen({ onStartLesson, onFreePlay }: Props) {
                   pointerEvents: 'none',
                 }}>
                   <span style={{
-                    fontSize: 11, fontWeight: 800, lineHeight: 1.25,
-                    color: result ? '#fff' : isCurrent ? '#fff' : 'rgba(255,255,255,0.40)',
-                    textShadow: '0 1px 4px rgba(0,0,0,0.40)',
+                    fontSize: 12, fontWeight: 800, lineHeight: 1.25,
+                    color: result ? 'var(--color-text)' : isCurrent ? 'var(--color-text)' : 'var(--color-text-3)',
                     textAlign: labelRight ? 'left' : 'right',
                   }}>
                     {node.lesson.title}
@@ -366,27 +412,28 @@ export default function PathScreen({ onStartLesson, onFreePlay }: Props) {
       {/* ── Bottom bar ───────────────────────────────────────── */}
       <div style={{
         flexShrink: 0, padding: '12px 20px 24px',
-        background: 'linear-gradient(to top, rgba(40,28,180,0.97) 60%, transparent)',
+        background: 'linear-gradient(to top, rgba(250,250,247,0.97) 60%, transparent)',
         display: 'flex', justifyContent: 'center',
       }}>
         <button
           onClick={onFreePlay}
           style={{
-            background: 'linear-gradient(135deg,#FDCB6E,#E17055)',
+            background: 'var(--gradient-accent)',
             color: '#fff', border: 'none', borderRadius: 999,
-            padding: '14px 40px', fontSize: 16, fontWeight: 800,
+            padding: '16px 44px', fontSize: 18, fontWeight: 800,
             cursor: 'pointer', outline: 'none',
-            boxShadow: '0 6px 20px rgba(253,203,110,0.50)',
-            display: 'flex', alignItems: 'center', gap: 8,
+            boxShadow: '0 6px 20px rgba(244,132,95,0.35)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            minHeight: 'var(--touch-lg)',
             transition: 'transform .14s, box-shadow .14s',
           }}
           onMouseEnter={e => {
             (e.currentTarget as HTMLElement).style.transform = 'scale(1.04)';
-            (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 28px rgba(253,203,110,0.65)';
+            (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 28px rgba(244,132,95,0.50)';
           }}
           onMouseLeave={e => {
             (e.currentTarget as HTMLElement).style.transform = '';
-            (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(253,203,110,0.50)';
+            (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(244,132,95,0.35)';
           }}
         >
           🎮 Jogar Livre

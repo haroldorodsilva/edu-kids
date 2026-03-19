@@ -4,8 +4,7 @@ import type { Word } from '../../shared/data/words';
 import { shuffle, pickRandom } from '../../shared/utils/helpers';
 import { beep, speak } from '../../shared/utils/audio';
 import { recordGamePlayed, recordWordAttempt } from '../../shared/utils/sessionStats';
-import DoneCard from '../../shared/components/DoneCard';
-import ProgressBar from '../../shared/components/ProgressBar';
+import GameLayout from '../../shared/components/GameLayout';
 
 interface Props {
   onBack: () => void;
@@ -69,33 +68,27 @@ export default function FirstLetter({ onBack, wordPool, rounds, onComplete }: Pr
     }, 1200);
   }
 
-  if (done) return <DoneCard score={{ correct, total: effectiveRounds }} onBack={onBack} />;
   if (!current) return null;
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #fce4ec 0%, #ec407a 100%)' }}>
-      <ProgressBar current={round} total={effectiveRounds} color="#AD1457" />
-      <div className="flex items-center gap-3 w-full mb-2">
-        <button onClick={onBack} className="text-pink-900 text-2xl font-bold">←</button>
-        <h1 className="text-2xl font-bold text-pink-900">🔤 Letra Inicial</h1>
-      </div>
+    <GameLayout gameId="firstletter" title="🔤 Letra Inicial" round={round} totalRounds={effectiveRounds} done={done} correct={correct} onBack={onBack}>
       <div className="text-8xl mb-2 animate-bounce-custom">{current.emoji}</div>
-      <p className="text-3xl font-bold text-pink-800 mb-2">
+      <p className="text-3xl font-bold mb-2" style={{ color: 'var(--game-color)' }}>
         {Object.keys(feedback).length > 0 && feedback[current.word[0].toUpperCase()] === 'correct' ? (
           <>
             <span
               className="inline-block animate-bounce-custom"
-              style={{ color: '#4CAF50', fontSize: '2.2rem', transform: 'scale(1.4)', display: 'inline-block' }}
+              style={{ color: 'var(--feedback-ok)', fontSize: '2.2rem', transform: 'scale(1.4)', display: 'inline-block' }}
             >
               {current.word[0].toUpperCase()}
             </span>
-            <span style={{ color: '#AD1457' }}>{current.word.slice(1)}</span>
+            <span style={{ color: 'var(--game-color)' }}>{current.word.slice(1)}</span>
           </>
         ) : (
           current.word
         )}
       </p>
-      <p className="text-pink-700 mb-6 text-lg">Com qual letra começa?</p>
+      <p className="mb-6 text-lg" style={{ color: 'var(--game-color)', opacity: 0.85 }}>Com qual letra começa?</p>
       <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
         {options.map((letter, i) => {
           const fb = feedback[letter];
@@ -105,9 +98,9 @@ export default function FirstLetter({ onBack, wordPool, rounds, onComplete }: Pr
               onClick={() => handleChoice(letter)}
               className="py-6 rounded-2xl font-bold text-4xl border-4 transition-all duration-300 active:scale-95"
               style={{
-                backgroundColor: fb === 'correct' ? '#C8E6C9' : fb === 'wrong' ? '#FFCDD2' : 'white',
-                borderColor: fb === 'correct' ? '#4CAF50' : fb === 'wrong' ? '#F44336' : '#AD1457',
-                color: fb ? (fb === 'correct' ? '#2E7D32' : '#C62828') : '#880E4F',
+                backgroundColor: fb === 'correct' ? 'var(--feedback-ok-light)' : fb === 'wrong' ? 'var(--feedback-error-light)' : 'white',
+                borderColor: fb === 'correct' ? 'var(--feedback-ok)' : fb === 'wrong' ? 'var(--feedback-error)' : 'var(--game-color)',
+                color: fb ? (fb === 'correct' ? 'var(--feedback-ok-dark)' : 'var(--feedback-error-dark)') : 'var(--game-color)',
               }}
             >
               {letter}
@@ -115,6 +108,6 @@ export default function FirstLetter({ onBack, wordPool, rounds, onComplete }: Pr
           );
         })}
       </div>
-    </div>
+    </GameLayout>
   );
 }

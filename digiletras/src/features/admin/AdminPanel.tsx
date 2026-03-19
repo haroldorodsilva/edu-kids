@@ -5,18 +5,22 @@ import WordBank from './WordBank';
 import AIGenerator from './AIGenerator';
 import MatchGameEditor from './MatchGameEditor';
 import ColoringEditor from './ColoringEditor';
+import ActivityEditor from './ActivityEditor';
+import TrailBuilder from './TrailBuilder';
 
 interface Props { onBack: () => void; }
 
-type Tab = 'dashboard' | 'stories' | 'words' | 'ai' | 'matchgame' | 'coloring';
+type Tab = 'dashboard' | 'activities' | 'trails' | 'stories' | 'words' | 'ai' | 'matchgame' | 'coloring';
 
 const TABS: { id: Tab; label: string; icon: string; color: string }[] = [
-  { id: 'dashboard',   label: 'Dashboard', icon: '📊', color: '#6C5CE7' },
-  { id: 'stories',     label: 'Histórias', icon: '📖', color: '#E17055' },
-  { id: 'words',       label: 'Palavras',  icon: '📚', color: '#0984E3' },
-  { id: 'matchgame',   label: 'Ligar',     icon: '🔗', color: '#6A1B9A' },
-  { id: 'coloring',    label: 'Pintar',    icon: '🎨', color: '#E65100' },
-  { id: 'ai',          label: 'IA',        icon: '🤖', color: '#00B894' },
+  { id: 'dashboard',   label: 'Dashboard',   icon: '📊', color: '#7E6FD4' },
+  { id: 'activities',  label: 'Atividades',  icon: '📋', color: '#42A5F5' },
+  { id: 'trails',      label: 'Trilhas',     icon: '🛤️', color: '#66BB6A' },
+  { id: 'stories',     label: 'Histórias',   icon: '📖', color: '#F4845F' },
+  { id: 'words',       label: 'Palavras',    icon: '📚', color: '#64B5F6' },
+  { id: 'matchgame',   label: 'Ligar',       icon: '🔗', color: '#7E6FD4' },
+  { id: 'coloring',    label: 'Pintar',      icon: '🎨', color: '#FFA726' },
+  { id: 'ai',          label: 'IA',          icon: '🤖', color: '#4DB6AC' },
 ];
 
 export default function AdminPanel({ onBack }: Props) {
@@ -110,6 +114,8 @@ export default function AdminPanel({ onBack }: Props) {
       {/* ── Content ────────────────────────────────────────────── */}
       <div style={{ flex: 1 }}>
         {tab === 'dashboard'   && <Dashboard />}
+        {tab === 'activities'  && <ActivityEditor />}
+        {tab === 'trails'      && <TrailBuilder />}
         {tab === 'stories'     && <StoryManager />}
         {tab === 'words'       && <WordBank />}
         {tab === 'matchgame'   && <MatchGameEditor />}

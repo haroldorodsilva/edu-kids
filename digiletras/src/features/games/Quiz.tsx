@@ -4,8 +4,7 @@ import type { Word } from '../../shared/data/words';
 import { shuffle, pickRandom } from '../../shared/utils/helpers';
 import { beep, speak } from '../../shared/utils/audio';
 import { recordGamePlayed, recordWordAttempt } from '../../shared/utils/sessionStats';
-import DoneCard from '../../shared/components/DoneCard';
-import ProgressBar from '../../shared/components/ProgressBar';
+import GameLayout from '../../shared/components/GameLayout';
 
 interface Props {
   onBack: () => void;
@@ -72,18 +71,12 @@ export default function Quiz({ onBack, wordPool, rounds, onComplete }: Props) {
     }, 1200);
   }
 
-  if (done) return <DoneCard score={{ correct, total: effectiveRounds }} onBack={onBack} />;
   if (!current) return null;
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #fce4ec 0%, #f48fb1 100%)' }}>
-      <ProgressBar current={round} total={effectiveRounds} color="#E91E63" />
-      <div className="flex items-center gap-3 w-full mb-2">
-        <button onClick={onBack} className="text-pink-800 text-2xl font-bold">←</button>
-        <h1 className="text-2xl font-bold text-pink-800">🖼️ Quiz Visual</h1>
-      </div>
+    <GameLayout gameId="quiz" title="🖼️ Quiz Visual" round={round} totalRounds={effectiveRounds} done={done} correct={correct} onBack={onBack}>
       <div
-        className={celebrating ? 'animate-bounce-custom' : 'animate-bounce-custom'}
+        className={celebrating ? 'animate-bounce-custom' : ''}
         style={{
           fontSize: celebrating ? 120 : 96,
           lineHeight: 1,
@@ -94,7 +87,7 @@ export default function Quiz({ onBack, wordPool, rounds, onComplete }: Props) {
       >
         {current.emoji}
       </div>
-      <p className="text-pink-700 mb-6 text-lg">Qual é essa palavra?</p>
+      <p className="mb-6 text-lg" style={{ color: 'var(--game-color)' }}>Qual é essa palavra?</p>
       <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
         {options.map((opt, i) => {
           const fb = feedback[opt];
@@ -104,9 +97,9 @@ export default function Quiz({ onBack, wordPool, rounds, onComplete }: Props) {
               onClick={() => handleChoice(opt)}
               className="py-4 rounded-2xl font-bold text-xl border-4 transition-all duration-300 active:scale-95"
               style={{
-                backgroundColor: fb === 'correct' ? '#C8E6C9' : fb === 'wrong' ? '#FFCDD2' : 'white',
-                borderColor: fb === 'correct' ? '#4CAF50' : fb === 'wrong' ? '#F44336' : '#E91E63',
-                color: fb ? (fb === 'correct' ? '#2E7D32' : '#C62828') : '#880E4F',
+                backgroundColor: fb === 'correct' ? 'var(--feedback-ok-light)' : fb === 'wrong' ? 'var(--feedback-error-light)' : 'white',
+                borderColor: fb === 'correct' ? 'var(--feedback-ok)' : fb === 'wrong' ? 'var(--feedback-error)' : 'var(--game-color)',
+                color: fb ? (fb === 'correct' ? 'var(--feedback-ok-dark)' : 'var(--feedback-error-dark)') : 'var(--game-color)',
               }}
             >
               {opt}
@@ -114,6 +107,6 @@ export default function Quiz({ onBack, wordPool, rounds, onComplete }: Props) {
           );
         })}
       </div>
-    </div>
+    </GameLayout>
   );
 }
