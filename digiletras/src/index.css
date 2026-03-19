@@ -64,6 +64,18 @@
   --gradient-success:  linear-gradient(135deg, #00B894 0%, #55EFC4 100%);
   --gradient-bg:       linear-gradient(160deg, #F4F3FF 0%, #EDE9FE 100%);
   --gradient-hero:     linear-gradient(135deg, #6C5CE7 0%, #4834D4 60%, #2d1fa3 100%);
+
+  /* ── Espaçamento ──────────────────────────────────────────── */
+  --spacing-xs:   4px;
+  --spacing-sm:   8px;
+  --spacing-md:   16px;
+  --spacing-lg:   24px;
+  --spacing-xl:   32px;
+  --spacing-2xl:  48px;
+
+  /* ── Transições ───────────────────────────────────────────── */
+  --transition-fast:   0.15s ease;
+  --transition-normal: 0.3s ease;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -110,6 +122,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
   font-family: var(--font-family);
   font-weight: 700;
   border: none;
@@ -190,6 +204,19 @@ body {
   flex-direction: column;
   background: var(--gradient-bg);
   overflow: hidden;
+}
+
+/* Feedback visual */
+.ds-feedback-correct {
+  background-color: #C8E6C9;
+  border-color: var(--color-success);
+  color: #2E7D32;
+}
+
+.ds-feedback-wrong {
+  background-color: #FFCDD2;
+  border-color: var(--color-danger);
+  color: #C62828;
 }
 
 /* Scrollbar oculta */

@@ -4,10 +4,10 @@ export interface Story {
   emoji: string;
   sentences: string[];
   difficulty: 1 | 2 | 3;
-  theme?: string;
+  theme: string;
 }
 
-export const stories: Story[] = [
+export const stories = [
   {
     id: 's1', title: 'O gato e a bola', emoji: '🐱', difficulty: 1, theme: 'animal',
     sentences: ['O gato viu a bola.', 'A bola é do gato.', 'O gato e a bola no sol.']
@@ -56,4 +56,4 @@ export const stories: Story[] = [
     id: 's12', title: 'O cachorro e o sapato', emoji: '🐶', difficulty: 2, theme: 'animal',
     sentences: ['O cachorro achou um sapato.', 'O sapato é da boneca.', 'O cachorro corre no jardim.']
   },
-];
+] as const satisfies readonly Story[];

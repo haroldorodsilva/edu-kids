@@ -3,12 +3,11 @@ import { words } from '../../shared/data/words';
 import type { Word } from '../../shared/data/words';
 import { shuffle } from '../../shared/utils/helpers';
 import { beep, speak } from '../../shared/utils/audio';
+import { getTheme } from '../../shared/data/gameThemes';
+import GameLayout from '../../shared/components/layout/GameLayout';
+import type { GameComponentProps } from '../../shared/types';
 
-interface Props {
-  onBack: () => void;
-  wordPool?: Word[];
-  onComplete?: (errors: number) => void;
-}
+type Props = Omit<GameComponentProps, 'rounds'>;
 
 interface Card { id: string; wordId: string; word: string; emoji: string; }
 
@@ -39,6 +38,7 @@ function saveBestScore(level: number, attempts: number) {
 }
 
 export default function Memory({ onBack, wordPool, onComplete }: Props) {
+  const theme = getTheme('memory');
   const [level, setLevel] = useState(1);
   const basePool = wordPool ?? words;
   const numPairs = 3 + level;
@@ -50,6 +50,8 @@ export default function Memory({ onBack, wordPool, onComplete }: Props) {
   const [levelDone, setLevelDone] = useState(false);
   const [bestScore, setBestScore] = useState<number | null>(() => getBestScore(1));
 
+  const totalPairs = cards.length / 2;
+  const matchedPairs = matched.length / 2;
   const allMatched = matched.length === cards.length;
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export default function Memory({ onBack, wordPool, onComplete }: Props) {
       setLevelDone(true);
       beep('yay');
       if (onComplete) {
-        const errors = Math.max(0, attempts - cards.length / 2);
+        const errors = Math.max(0, attempts - totalPairs);
         onComplete(errors);
       }
     }
@@ -96,71 +98,70 @@ export default function Memory({ onBack, wordPool, onComplete }: Props) {
     setFlipped([]); setMatched([]); setAttempts(0); setLevelDone(false);
   }
 
-  if (levelDone && !onComplete) {
-    const isRecord = bestScore === attempts;
-
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4" style={{ background: 'linear-gradient(135deg, #b2dfdb 0%, #26a69a 100%)' }}>
-        <div className="bg-white rounded-3xl p-8 shadow-2xl text-center animate-pop">
-          <div className="text-6xl mb-3">{isRecord ? '🏆' : '🎉'}</div>
-          <h2 className="text-2xl font-bold text-teal-700 mb-1">Nível {level} completo!</h2>
-          <p className="text-gray-600 mb-1">Tentativas: <strong>{attempts}</strong></p>
-          {bestScore !== null && (
-            <p className="text-sm mb-4" style={{ color: isRecord ? '#E91E63' : '#888' }}>
-              {isRecord ? '⭐ Novo recorde!' : `Recorde: ${bestScore} tentativas`}
-            </p>
-          )}
-          <div className="flex gap-3 justify-center mt-2">
-            <button onClick={onBack} className="px-5 py-3 bg-gray-200 rounded-2xl font-bold text-gray-700">← Voltar</button>
-            <button onClick={nextLevel} className="px-5 py-3 bg-teal-600 rounded-2xl font-bold text-white">Próximo Nível →</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // When level is done and no external onComplete, show level-complete via GameLayout's DoneCard
+  // For the "next level" flow, we use GameLayout with done=true and onNext=nextLevel
+  const showDone = levelDone && !onComplete;
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #b2dfdb 0%, #80cbc4 100%)' }}>
-      <div className="flex justify-between w-full max-w-lg mb-4">
-        <div className="flex items-center gap-2">
-          <button onClick={onBack} className="text-teal-800 text-2xl font-bold">←</button>
-          <h1 className="text-2xl font-bold text-teal-800">🧠 Memória</h1>
-        </div>
-        <div className="text-right">
-          <p className="text-teal-700 font-semibold text-sm">Nível {level} • Tent: {attempts}</p>
+    <GameLayout
+      gameId="memory"
+      onBack={onBack}
+      currentRound={matchedPairs}
+      totalRounds={totalPairs}
+      done={showDone}
+      score={{ correct: totalPairs, total: attempts }}
+      onNext={nextLevel}
+    >
+      <div className="flex-1 flex flex-col items-center p-4">
+        <div className="flex justify-between w-full max-w-lg mb-4">
+          <div className="flex items-center gap-2">
+            <p style={{ color: theme.textColor }} className="text-lg font-semibold">
+              Nível {level} • Tentativas: {attempts}
+            </p>
+          </div>
           {bestScore !== null && (
-            <p className="text-teal-600 text-xs">🏆 Recorde: {bestScore}</p>
+            <p style={{ color: theme.color }} className="text-sm" aria-label={`Recorde: ${bestScore} tentativas`}>
+              🏆 Recorde: {bestScore}
+            </p>
           )}
         </div>
+
+        <div className="grid grid-cols-4 gap-2 w-full max-w-lg" role="grid" aria-label="Tabuleiro de memória">
+          {cards.map(card => {
+            const isFlipped = flipped.includes(card.id);
+            const isMatched = matched.includes(card.id);
+            const revealed = isFlipped || isMatched;
+            return (
+              <button
+                key={card.id}
+                onClick={() => handleFlip(card)}
+                aria-label={revealed ? `${card.word} - ${card.emoji}` : 'Carta virada'}
+                className={`aspect-square rounded-2xl flex flex-col items-center justify-center text-sm font-bold border-4 ${
+                  isMatched ? 'ds-feedback-correct opacity-70' :
+                  isFlipped ? 'bg-yellow-50 border-yellow-400' : ''
+                }`}
+                style={
+                  !isMatched && !isFlipped
+                    ? { backgroundColor: theme.color, borderColor: theme.textColor, color: 'white' }
+                    : isFlipped
+                    ? { color: 'var(--color-text)' }
+                    : undefined
+                }
+                disabled={isMatched}
+              >
+                {revealed ? (
+                  <>
+                    <span className="text-2xl">{card.emoji || card.word.charAt(0).toUpperCase()}</span>
+                    <span className="text-xs mt-1">{card.word}</span>
+                  </>
+                ) : (
+                  <span className="text-3xl">?</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <div className="grid grid-cols-4 gap-2 w-full max-w-lg">
-        {cards.map(card => {
-          const isFlipped = flipped.includes(card.id);
-          const isMatched = matched.includes(card.id);
-          return (
-            <button
-              key={card.id}
-              onClick={() => handleFlip(card)}
-              className="aspect-square rounded-2xl flex flex-col items-center justify-center text-sm font-bold transition-all duration-300 border-4"
-              style={{
-                backgroundColor: isMatched ? '#C8E6C9' : isFlipped ? '#FFF9C4' : '#7B1FA2',
-                borderColor: isMatched ? '#4CAF50' : isFlipped ? '#FFC107' : '#4A148C',
-                opacity: isMatched ? 0.7 : 1,
-                color: isMatched || isFlipped ? '#333' : 'white',
-              }}
-            >
-              {isFlipped || isMatched ? (
-                <>
-                  <span className="text-2xl">{card.emoji}</span>
-                  <span className="text-xs mt-1">{card.word}</span>
-                </>
-              ) : (
-                <span className="text-3xl">?</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    </GameLayout>
   );
 }

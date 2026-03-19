@@ -2,11 +2,12 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Paintbrush } from 'lucide-react';
 import { beep } from '../../shared/utils/audio';
 import { getColoringSheets, type ColoringSheet } from '../../shared/data/coloringSheets';
+import { getTheme } from '../../shared/data/gameThemes';
+import GameLayout from '../../shared/components/layout/GameLayout';
+import ScreenHeader from '../../shared/components/layout/ScreenHeader';
+import type { GameComponentProps } from '../../shared/types';
 
-interface Props {
-  onBack: () => void;
-  onComplete?: (errors: number) => void;
-}
+type Props = Pick<GameComponentProps, 'onBack' | 'onComplete'>;
 
 const PALETTE = [
   '#F44336', '#E91E63', '#FF4081', '#FF8A80',
@@ -16,6 +17,8 @@ const PALETTE = [
   '#795548', '#BCAAA4', '#FFCCBC', '#FFF9C4',
   '#FFFFFF', '#E0E0E0', '#757575', '#212121',
 ];
+
+const theme = getTheme('coloring');
 
 // Paintbrush SVG cursor — tip is the hotspot (bottom of bristles)
 function buildCursor(color: string): string {
@@ -123,7 +126,7 @@ function useSvgColoring(
     bgRect.setAttribute('height', String(vh));
     bgRect.setAttribute('fill', 'white');
     bgRect.style.pointerEvents = 'all';
-    bgRect.style.transition = 'fill 0.12s';
+    bgRect.style.transition = `fill var(--transition-fast)`;
     bgRect.addEventListener('click', (ev: Event) => {
       ev.stopPropagation();
       const color = selectedColorRef.current;
@@ -139,7 +142,7 @@ function useSvgColoring(
       const e = el as SVGElement;
       if (e === bgRect) return; // already handled
       e.style.pointerEvents = 'all';
-      e.style.transition = 'fill 0.12s';
+      e.style.transition = `fill var(--transition-fast)`;
       if (e.getAttribute('fill') === 'none' && !e.style.fill) return;
 
       const handler = (ev: Event) => {
@@ -206,8 +209,15 @@ function PngColoring({ sheet, selectedColorRef, onPaint, cursor }: {
     <canvas
       ref={canvasRef}
       onClick={handleCanvasClick}
-      className="w-full rounded-3xl shadow-xl bg-white"
-      style={{ cursor, maxHeight: '62vh', display: 'block' }}
+      aria-label="Área de pintura"
+      className="w-full bg-white"
+      style={{
+        cursor,
+        maxHeight: '62vh',
+        display: 'block',
+        borderRadius: 'var(--radius-xl)',
+        boxShadow: 'var(--shadow-lg)',
+      }}
     />
   );
 }
@@ -237,78 +247,119 @@ export default function Coloring({ onBack }: Props) {
     setColoredCount(0);
   }
 
+  // Empty state — no sheets available
   if (!current) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center"
-        style={{ background: 'linear-gradient(135deg, #fff9e6 0%, #ffe0b2 100%)' }}>
-        <div className="text-6xl mb-4">🎨</div>
-        <h2 className="text-2xl font-bold text-orange-800 mb-2">Nenhum desenho ainda</h2>
-        <p className="text-orange-600 mb-2">Coloque arquivos <strong>.svg</strong> ou <strong>.png</strong> em:</p>
-        <code className="bg-orange-100 rounded-xl px-3 py-2 text-sm text-orange-800 mb-6">src/assets/paint/</code>
-        <button onClick={onBack} className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-bold">← Voltar</button>
+      <div className="ds-screen" style={{ background: theme.gradient }}>
+        <ScreenHeader
+          emoji={theme.icon}
+          title={theme.label}
+          onBack={onBack}
+          gradient={theme.gradient}
+        />
+        <div className="flex flex-col items-center justify-center flex-1 text-center"
+          style={{ padding: 'var(--spacing-xl)' }}>
+          <div className="text-6xl" style={{ marginBottom: 'var(--spacing-md)' }}>🎨</div>
+          <h2 className="text-2xl font-bold" style={{ color: theme.textColor, marginBottom: 'var(--spacing-sm)' }}>
+            Nenhum desenho ainda
+          </h2>
+          <p style={{ color: theme.color, marginBottom: 'var(--spacing-sm)' }}>
+            Coloque arquivos <strong>.svg</strong> ou <strong>.png</strong> em:
+          </p>
+          <code
+            className="ds-badge"
+            style={{
+              background: `${theme.color}18`,
+              color: theme.textColor,
+              marginBottom: 'var(--spacing-xl)',
+              fontSize: 'var(--font-size-sm)',
+            }}
+          >
+            src/assets/paint/
+          </code>
+          <button
+            onClick={onBack}
+            className="ds-btn ds-btn-primary"
+            style={{ background: theme.gradient }}
+          >
+            ← Voltar
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col select-none"
-      style={{ background: 'linear-gradient(135deg, #fff9e6 0%, #ffe0b2 100%)' }}>
-
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 flex-shrink-0">
-        <button onClick={onBack} className="text-orange-700 text-2xl font-bold">←</button>
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1.5">
-            <Paintbrush size={18} style={{ color: selectedColor === '#FFFFFF' ? '#aaa' : selectedColor }} />
-            <h1 className="text-lg font-bold text-orange-800">Pintar</h1>
-          </div>
-          <p className="text-orange-600 text-xs">{current.name}</p>
+    <GameLayout
+      gameId="coloring"
+      onBack={onBack}
+      currentRound={sheetIdx}
+      totalRounds={sheets.length}
+      done={false}
+    >
+      {/* Action bar: paint count + skip/finish */}
+      <div
+        className="flex items-center justify-between flex-shrink-0"
+        style={{ padding: 'var(--spacing-xs) var(--spacing-md)' }}
+      >
+        <div className="flex items-center gap-1 font-bold" style={{ color: theme.color, fontSize: 'var(--font-size-sm)' }}>
+          <Paintbrush size={14} color={theme.color} aria-hidden="true" />
+          <span>{coloredCount}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 text-orange-600 font-bold text-sm">
-            <Paintbrush size={14} color="#FF6D00" />
-            <span>{coloredCount}</span>
-          </div>
-          {/* Skip / Next */}
-          {sheetIdx + 1 < sheets.length ? (
-            <button
-              onClick={() => loadSheet(sheetIdx + 1)}
-              className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-xl text-xs font-bold"
-            >
-              Pular →
-            </button>
-          ) : (
+
+        <div className="flex items-center" style={{ gap: 'var(--spacing-sm)' }}>
+          {/* Finish button — shown after painting at least once */}
+          {coloredCount > 0 && (
             <button
               onClick={onBack}
-              className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-xl text-xs font-bold"
+              className="ds-btn"
+              aria-label="Finalizar pintura"
+              style={{
+                background: theme.gradient,
+                color: 'var(--color-text-inverse)',
+                padding: 'var(--spacing-sm) var(--spacing-md)',
+                fontSize: 'var(--font-size-sm)',
+                borderRadius: 'var(--radius-lg)',
+              }}
             >
-              Pular →
+              ✅ Finalizar
             </button>
           )}
+
+          {/* Skip / Next */}
+          <button
+            onClick={() => sheetIdx + 1 < sheets.length ? loadSheet(sheetIdx + 1) : onBack()}
+            className="ds-btn"
+            aria-label={sheetIdx + 1 < sheets.length ? 'Pular para próximo desenho' : 'Pular e voltar'}
+            style={{
+              background: `${theme.color}18`,
+              color: theme.color,
+              padding: 'var(--spacing-sm) var(--spacing-md)',
+              fontSize: 'var(--font-size-xs)',
+              fontWeight: 700,
+              borderRadius: 'var(--radius-lg)',
+            }}
+          >
+            Pular →
+          </button>
         </div>
       </div>
 
-      {/* Finish button — shown after painting at least once */}
-      {coloredCount > 0 && (
-        <div className="px-4 pb-1 flex-shrink-0">
-          <button
-            onClick={onBack}
-            className="w-full py-2.5 rounded-2xl font-bold text-white text-sm"
-            style={{ background: 'linear-gradient(135deg, #FF6D00, #E91E63)' }}
-          >
-            ✅ Finalizar
-          </button>
-        </div>
-      )}
-
       {/* Canvas area */}
-      <div className="flex-1 px-3 flex items-center justify-center overflow-hidden">
+      <div className="flex-1 flex items-center justify-center overflow-hidden"
+        style={{ padding: '0 var(--spacing-sm)' }}>
         {current.type === 'svg' ? (
           <div
             key={current.id}
             ref={svgContainerRef}
-            className="w-full max-w-sm rounded-3xl shadow-xl overflow-hidden"
-            style={{ cursor, background: 'transparent' }}
+            aria-label={`Desenho para pintar: ${current.name}`}
+            className="w-full max-w-sm overflow-hidden"
+            style={{
+              cursor,
+              background: 'transparent',
+              borderRadius: 'var(--radius-xl)',
+              boxShadow: 'var(--shadow-lg)',
+            }}
           />
         ) : (
           <div className="w-full max-w-sm">
@@ -324,29 +375,38 @@ export default function Coloring({ onBack }: Props) {
       </div>
 
       {/* Palette */}
-      <div className="flex-shrink-0 px-3 pb-3 pt-2">
-        <div className="bg-white rounded-2xl shadow px-3 py-2">
-          <div className="flex items-center gap-2">
+      <div className="flex-shrink-0" style={{ padding: 'var(--spacing-sm) var(--spacing-sm) var(--spacing-sm)' }}>
+        <div className="ds-card" style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
+          <div className="flex items-center" style={{ gap: 'var(--spacing-sm)' }}>
             {/* Selected swatch */}
             <div
-              className="flex-shrink-0 rounded-full border-2 border-gray-300"
-              style={{ width: 28, height: 28, backgroundColor: selectedColor }}
+              className="flex-shrink-0 rounded-full"
+              aria-label={`Cor selecionada: ${selectedColor}`}
+              style={{
+                width: 28,
+                height: 28,
+                backgroundColor: selectedColor,
+                border: '2px solid var(--color-border)',
+              }}
             />
 
             {/* Preset swatches */}
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide flex-1 py-1">
+            <div className="flex flex-1 overflow-x-auto scrollbar-hide"
+              style={{ gap: 'var(--spacing-xs)', padding: 'var(--spacing-xs) 0' }}>
               {PALETTE.map(color => (
                 <button
                   key={color}
                   onClick={() => setSelectedColor(color)}
-                  className="flex-shrink-0 rounded-full transition-all active:scale-90"
+                  className="flex-shrink-0 rounded-full"
                   style={{
                     width: 26, height: 26,
+                    minWidth: 26, minHeight: 26,
                     backgroundColor: color,
                     border: selectedColor === color
-                      ? '3px solid #333'
-                      : color === '#FFFFFF' ? '1.5px solid #ccc' : '1.5px solid transparent',
+                      ? '3px solid var(--color-text)'
+                      : color === '#FFFFFF' ? '1.5px solid var(--color-border)' : '1.5px solid transparent',
                     transform: selectedColor === color ? 'scale(1.2)' : 'scale(1)',
+                    transition: `transform var(--transition-fast)`,
                   }}
                   aria-label={`Cor ${color}`}
                 />
@@ -355,8 +415,16 @@ export default function Coloring({ onBack }: Props) {
 
             {/* Native color picker */}
             <label
-              className="flex-shrink-0 w-7 h-7 rounded-full border-2 border-dashed border-gray-400 flex items-center justify-center cursor-pointer text-gray-500 hover:border-gray-600 text-xs font-bold"
+              className="flex-shrink-0 flex items-center justify-center cursor-pointer rounded-full"
               title="Mais cores"
+              style={{
+                width: 28,
+                height: 28,
+                border: '2px dashed var(--color-text-3)',
+                color: 'var(--color-text-3)',
+                fontSize: 'var(--font-size-xs)',
+                fontWeight: 700,
+              }}
             >
               +
               <input
@@ -364,6 +432,7 @@ export default function Coloring({ onBack }: Props) {
                 className="sr-only"
                 value={selectedColor}
                 onChange={e => setSelectedColor(e.target.value)}
+                aria-label="Escolher cor personalizada"
               />
             </label>
           </div>
@@ -371,15 +440,22 @@ export default function Coloring({ onBack }: Props) {
 
         {/* Sheet tabs */}
         {sheets.length > 1 && (
-          <div className="flex gap-2 mt-2 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex overflow-x-auto scrollbar-hide"
+            style={{ gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)', paddingBottom: 'var(--spacing-xs)' }}>
             {sheets.map((s, i) => (
               <button
                 key={s.id}
                 onClick={() => loadSheet(i)}
-                className="flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+                className="ds-btn flex-shrink-0"
+                aria-label={`Desenho: ${s.name}`}
                 style={{
-                  backgroundColor: i === sheetIdx ? '#FF6F00' : '#FFE0B2',
-                  color: i === sheetIdx ? 'white' : '#BF360C',
+                  padding: 'var(--spacing-sm) var(--spacing-md)',
+                  borderRadius: 'var(--radius-lg)',
+                  fontSize: 'var(--font-size-xs)',
+                  fontWeight: 700,
+                  backgroundColor: i === sheetIdx ? theme.color : `${theme.color}22`,
+                  color: i === sheetIdx ? 'var(--color-text-inverse)' : theme.textColor,
+                  transition: `all var(--transition-fast)`,
                 }}
               >
                 {s.emoji} {s.name}
@@ -388,6 +464,6 @@ export default function Coloring({ onBack }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </GameLayout>
   );
 }

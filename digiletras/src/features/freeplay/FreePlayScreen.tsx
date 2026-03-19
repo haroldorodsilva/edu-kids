@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { GAME_THEMES } from '../../shared/data/gameThemes';
 import { words } from '../../shared/data/words';
 import type { Word } from '../../shared/data/words';
+import ScreenHeader from '../../shared/components/layout/ScreenHeader';
 
 interface Props {
   onSelect: (game: string, wordPool?: Word[]) => void;
@@ -28,81 +29,75 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
   const [catFilter, setCatFilter] = useState('');
 
   const filteredWords = catFilter ? words.filter(w => w.category === catFilter) : words;
-  const wordPool = catFilter ? filteredWords : undefined;
+  const wordPool = catFilter ? ([...filteredWords] as Word[]) : undefined;
 
   const availableCategories = CATEGORY_FILTERS.filter(cat =>
     !cat.id || words.filter(w => w.category === cat.id).length >= 4
   );
 
+  const subtitle = catFilter
+    ? `${filteredWords.length} palavra${filteredWords.length !== 1 ? 's' : ''} · ${
+        availableCategories.find(c => c.id === catFilter)?.label ?? catFilter
+      }`
+    : 'Escolha um jogo e divirta-se!';
+
   return (
-    <div className="ds-screen" style={{ background: 'var(--color-bg)', overflowY: 'auto' }}>
+    <div className="ds-screen" style={{ overflowY: 'auto' }}>
 
-      {/* ── Header ─────────────────────────────────────────────── */}
-      <header style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--color-surface)',
-        borderBottom: '1.5px solid var(--color-border)',
-        padding: '14px 16px 12px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      {/* ── Header via ScreenHeader ────────────────────────────── */}
+      <ScreenHeader
+        title="Jogar Livre"
+        emoji="🎮"
+        onBack={onBack}
+        subtitle={subtitle}
+        actions={
           <button
-            onClick={onBack}
-            className="ds-btn ds-btn-icon"
-            aria-label="Voltar"
-            style={{ fontSize: 18 }}
+            onClick={onAdmin}
+            className="ds-btn-icon"
+            style={{
+              background: 'rgba(255,255,255,.2)',
+              color: 'var(--color-text-inverse)',
+            }}
+            aria-label="Admin"
           >
-            ←
+            ⚙️
           </button>
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
-              Jogar Livre
-            </h1>
-            <p style={{ fontSize: 12, color: 'var(--color-text-2)', margin: 0 }}>
-              {catFilter
-                ? `${filteredWords.length} palavra${filteredWords.length !== 1 ? 's' : ''} · ${
-                    availableCategories.find(c => c.id === catFilter)?.label ?? catFilter
-                  }`
-                : 'Escolha qualquer jogo'}
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={onAdmin}
-          className="ds-btn ds-btn-ghost"
-          style={{ fontSize: 12, padding: '8px 12px' }}
-          aria-label="Admin"
-        >
-          ⚙️
-        </button>
-      </header>
+        }
+      />
 
       {/* ── Category pills ──────────────────────────────────────── */}
-      <div style={{ padding: '14px 16px 0', position: 'sticky', top: 65, zIndex: 9, background: 'var(--color-bg)' }}>
-        <div className="scrollbar-hide" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10 }}>
+      <div style={{
+        padding: 'var(--spacing-md) var(--spacing-lg) 0',
+        position: 'sticky', top: 76, zIndex: 9,
+        background: 'var(--color-bg)',
+      }}>
+        <div className="scrollbar-hide" style={{
+          display: 'flex', gap: 'var(--spacing-sm)', overflowX: 'auto',
+          paddingBottom: 'var(--spacing-sm)',
+        }}>
           {availableCategories.map(cat => {
             const active = catFilter === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => setCatFilter(cat.id)}
+                className={`ds-btn ${active ? '' : 'ds-btn-ghost'}`}
                 style={{
                   flexShrink: 0,
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 14px',
-                  borderRadius: 999,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                  background: active ? 'var(--color-primary)' : 'var(--color-surface)',
-                  color: active ? '#fff' : 'var(--color-text-2)',
-                  transition: 'all 0.15s',
-                  cursor: 'pointer',
-                  outline: 'none',
+                  padding: 'var(--spacing-sm) var(--spacing-md)',
+                  fontSize: 'var(--font-size-sm)',
+                  borderRadius: 'var(--radius-full)',
+                  background: active
+                    ? 'var(--gradient-primary)'
+                    : 'var(--color-surface)',
+                  color: active ? 'var(--color-text-inverse)' : 'var(--color-text-2)',
+                  boxShadow: active
+                    ? '0 3px 12px rgba(108,92,231,.35)'
+                    : 'var(--shadow-sm)',
+                  transition: `all var(--transition-fast)`,
                 }}
               >
-                <span style={{ fontSize: 15 }}>{cat.emoji}</span>
+                <span style={{ fontSize: 'var(--font-size-md)' }}>{cat.emoji}</span>
                 {cat.label}
               </button>
             );
@@ -111,52 +106,64 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
       </div>
 
       {/* ── Game grid ───────────────────────────────────────────── */}
-      <div style={{ padding: '8px 16px 32px' }}>
+      <div style={{ padding: 'var(--spacing-sm) var(--spacing-md) 40px' }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 12,
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 'var(--spacing-md)',
         }}>
           {GAME_THEMES.map((game, i) => (
             <button
               key={game.id}
               onClick={() => onSelect(game.id, wordPool)}
-              className="animate-pop-up"
+              className="ds-card animate-pop-up"
               style={{
-                animationDelay: `${i * 35}ms`,
-                background: 'var(--color-surface)',
-                borderRadius: 'var(--radius-xl)',
-                border: `2.5px solid ${game.color}33`,
-                padding: '20px 12px',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                boxShadow: `0 2px 10px ${game.color}1A`,
-                cursor: 'pointer', outline: 'none',
-                transition: 'transform 0.12s, box-shadow 0.12s',
+                animationDelay: `${i * 40}ms`,
+                background: game.gradient,
+                borderColor: `${game.color}40`,
+                padding: 'var(--spacing-lg) var(--spacing-md) var(--spacing-lg)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 'var(--spacing-sm)',
+                cursor: 'pointer',
+                transition: `transform var(--transition-fast), box-shadow var(--transition-fast)`,
+                position: 'relative',
+                overflow: 'hidden',
               }}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 6px 18px ${game.color}30`;
+                (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-4px) scale(1.02)';
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px ${game.color}35`;
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLButtonElement).style.transform = '';
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 2px 10px ${game.color}1A`;
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = '';
               }}
+              aria-label={game.label}
             >
-              {/* Icon container */}
+              {/* Decorative circle behind icon */}
               <div style={{
-                width: 64, height: 64,
-                borderRadius: 18,
-                background: `linear-gradient(135deg, ${game.color}22, ${game.color}44)`,
+                position: 'absolute', top: -20, right: -20,
+                width: 80, height: 80, borderRadius: 'var(--radius-full)',
+                background: `${game.color}12`,
+              }} />
+
+              {/* Icon */}
+              <div style={{
+                width: 72, height: 72,
+                borderRadius: 'var(--radius-lg)',
+                background: `linear-gradient(135deg, ${game.color}20, ${game.color}40)`,
+                border: `2.5px solid ${game.color}30`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 36,
+                fontSize: 38,
+                position: 'relative',
               }}>
                 {game.icon}
               </div>
 
+              {/* Label */}
               <span style={{
-                fontSize: 13,
+                fontSize: 'var(--font-size-sm)',
                 fontWeight: 800,
-                color: game.color,
+                color: game.textColor,
                 textAlign: 'center',
                 lineHeight: 1.2,
               }}>

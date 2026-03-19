@@ -25,6 +25,9 @@ interface SessionActions {
 /**
  * Encapsula o padrão comum a todos os jogos de palavra:
  * pool embaralhado, rodada atual, contagem de acertos/erros e estado done.
+ *
+ * @deprecated Use `useGameRounds` de `shared/hooks/useGameRounds.ts` em vez deste hook.
+ * O `useGameRounds` é genérico, aceita `onComplete` diretamente e não faz shuffle interno.
  */
 export function useGameSession({ wordPool, rounds, filter }: Options): SessionState & SessionActions {
   const [pool] = useState<Word[]>(() => {

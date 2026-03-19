@@ -30,9 +30,11 @@ export default function AIGenerator() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
+        // as { error?: string } — JSON response shape is unknown at runtime; we assert the expected error format
         throw new Error((data as { error?: string }).error ?? `Erro ${res.status}`);
       }
 
+      // as { title; emoji; sentences } — API response is untyped; we assert the expected shape from our backend contract
       const data = await res.json() as { title: string; emoji: string; sentences: string[] };
       setResult({
         id: `ai_${Date.now()}`,

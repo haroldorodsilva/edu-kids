@@ -6,16 +6,11 @@ import { beep, speak } from '../../shared/utils/audio';
 import { isTouchDevice } from '../../shared/utils/device';
 import { useKeyboardInput } from '../../shared/hooks/useKeyboardInput';
 import { recordGamePlayed, recordWordAttempt } from '../../shared/utils/sessionStats';
-import DoneCard from '../../shared/components/DoneCard';
-import ProgressBar from '../../shared/components/ProgressBar';
-import OnScreenKeyboard from '../../shared/components/OnScreenKeyboard';
-
-interface Props {
-  onBack: () => void;
-  wordPool?: Word[];
-  rounds?: number;
-  onComplete?: (errors: number) => void;
-}
+import { useGameRounds } from '../../shared/hooks/useGameRounds';
+import { getTheme } from '../../shared/data/gameThemes';
+import GameLayout from '../../shared/components/layout/GameLayout';
+import OnScreenKeyboard from '../../shared/components/ui/OnScreenKeyboard';
+import type { GameComponentProps } from '../../shared/types';
 
 const ROUNDS = 5;
 
@@ -27,23 +22,26 @@ function makeSlots(word: string) {
   return letters.map((l, i) => ({ letter: l, blank: blanks.has(i), filled: blanks.has(i) ? '' : l }));
 }
 
-export default function Fill({ onBack, wordPool, rounds, onComplete }: Props) {
+export default function Fill({ onBack, wordPool, rounds, onComplete }: GameComponentProps) {
   const effectiveRounds = rounds ?? ROUNDS;
+  const theme = getTheme('fill');
   const basePool = wordPool ?? words;
+
   const [pool] = useState(() => shuffle(basePool).slice(0, effectiveRounds));
-  const [round, setRound] = useState(0);
+
+  const { current, round, correct, done, advance, addError } = useGameRounds<Word>({
+    pool,
+    totalRounds: effectiveRounds,
+    onComplete,
+  });
+
   const [slots, setSlots] = useState(() => makeSlots(shuffle(basePool)[0]?.word || 'bola'));
   const [currentBlank, setCurrentBlank] = useState(0);
   const [shake, setShake] = useState(false);
-  const [correct, setCorrect] = useState(0);
-  const [errors, setErrors] = useState(0);
   const roundErrorsRef = useRef(0);
-  const [done, setDone] = useState(false);
   const [feedback, setFeedback] = useState<'ok' | 'no' | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const isTouch = isTouchDevice();
-
-  const current = pool[round];
 
   useEffect(() => { recordGamePlayed('fill'); }, []);
 
@@ -76,18 +74,8 @@ export default function Fill({ onBack, wordPool, rounds, onComplete }: Props) {
       if (nextBlankOrder >= blankIndices.length) {
         setTimeout(() => {
           setFeedback(null);
-          recordWordAttempt(current.word, roundErrorsRef.current);
-          const newCorrect = correct + 1;
-          setCorrect(newCorrect);
-          if (round + 1 >= effectiveRounds) {
-            if (onComplete) {
-              onComplete(errors);
-            } else {
-              setDone(true);
-            }
-          } else {
-            setRound(r => r + 1);
-          }
+          recordWordAttempt(current!.word, roundErrorsRef.current);
+          advance(true);
         }, 600);
       } else {
         setCurrentBlank(blankIndices[nextBlankOrder]);
@@ -95,13 +83,13 @@ export default function Fill({ onBack, wordPool, rounds, onComplete }: Props) {
       }
     } else {
       beep('no');
-      setErrors(e => e + 1);
+      addError();
       roundErrorsRef.current++;
       setFeedback('no');
       setShake(true);
       setTimeout(() => { setShake(false); setFeedback(null); }, 350);
     }
-  }, [slots, currentBlank, blankIndices, currentBlankOrder, round, correct, errors, effectiveRounds, onComplete, current]);
+  }, [slots, currentBlank, blankIndices, currentBlankOrder, advance, addError, current]);
 
   // Teclado físico (desktop) via hook centralizado
   useKeyboardInput({ onChar: handleLetter, active: !isTouch });
@@ -109,49 +97,59 @@ export default function Fill({ onBack, wordPool, rounds, onComplete }: Props) {
   // Contagem de lacunas restantes
   const remaining = blankIndices.length - currentBlankOrder;
 
-  if (done) return <DoneCard score={{ correct, total: effectiveRounds }} onBack={onBack} />;
-  if (!current) return null;
+  if (!current && !done) return null;
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #fff8e1 0%, #ffcc02 100%)' }}>
-      <ProgressBar current={round} total={effectiveRounds} color="#FF6F00" />
-      <div className="flex items-center gap-3 w-full mb-2">
-        <button onClick={onBack} className="text-orange-800 text-2xl font-bold">←</button>
-        <h1 className="text-2xl font-bold text-orange-800">✏️ Completar</h1>
+    <GameLayout
+      gameId="fill"
+      onBack={onBack}
+      currentRound={round}
+      totalRounds={effectiveRounds}
+      done={done}
+      score={{ correct, total: effectiveRounds }}
+    >
+      <div className="flex-1 flex flex-col items-center p-4">
+        <div className="text-8xl mb-2 animate-bounce-custom">{current?.emoji}</div>
+        <p style={{ color: theme.textColor }} className="mb-2 text-lg">Complete as letras!</p>
+        <p style={{ color: theme.color }} className="text-sm mb-4" role="status" aria-live="polite">
+          {remaining > 0 ? `Faltam ${remaining} letra${remaining > 1 ? 's' : ''}` : '✅'}
+        </p>
+
+        {!isTouch && <input ref={inputRef} className="opacity-0 absolute" readOnly aria-label="Campo de entrada do teclado" />}
+
+        <div className={`flex gap-2 flex-wrap justify-center mb-6 ${shake ? 'animate-shake' : ''}`}>
+          {slots.map((slot, i) => {
+            const isCurrentBlank = i === currentBlank && slot.blank && !slot.filled;
+            const isFilled = !slot.blank || !!slot.filled;
+            return (
+              <div
+                key={i}
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border-4 transition-all duration-300 ${
+                  isFilled ? 'ds-feedback-correct' : ''
+                }`}
+                style={
+                  isFilled
+                    ? undefined
+                    : {
+                        borderColor: isCurrentBlank ? theme.color : '#ddd',
+                        backgroundColor: isCurrentBlank ? theme.bg : 'white',
+                        transform: isCurrentBlank ? 'scale(1.15)' : 'scale(1)',
+                        borderStyle: 'dashed',
+                      }
+                }
+              >
+                {slot.blank ? slot.filled || '' : slot.letter}
+              </div>
+            );
+          })}
+        </div>
+
+        {isTouch ? (
+          <OnScreenKeyboard onKey={handleLetter} lastFeedback={feedback} />
+        ) : (
+          <p style={{ color: theme.color }} className="text-sm">Digite a letra no teclado</p>
+        )}
       </div>
-      <div className="text-8xl mb-2 animate-bounce-custom">{current.emoji}</div>
-      <p className="text-orange-700 mb-2 text-lg">Complete as letras!</p>
-      <p className="text-orange-500 text-sm mb-4">
-        {remaining > 0 ? `Faltam ${remaining} letra${remaining > 1 ? 's' : ''}` : '✅'}
-      </p>
-
-      {!isTouch && <input ref={inputRef} className="opacity-0 absolute" readOnly />}
-
-      <div className={`flex gap-2 flex-wrap justify-center mb-6 ${shake ? 'animate-shake' : ''}`}>
-        {slots.map((slot, i) => {
-          const isCurrentBlank = i === currentBlank && slot.blank && !slot.filled;
-          return (
-            <div
-              key={i}
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border-4 transition-all duration-300"
-              style={{
-                borderColor: !slot.blank ? '#4CAF50' : slot.filled ? '#4CAF50' : isCurrentBlank ? '#FF9800' : '#ddd',
-                backgroundColor: !slot.blank ? '#C8E6C9' : slot.filled ? '#C8E6C9' : isCurrentBlank ? '#FFF3E0' : 'white',
-                transform: isCurrentBlank ? 'scale(1.15)' : 'scale(1)',
-                borderStyle: slot.blank && !slot.filled ? 'dashed' : 'solid',
-              }}
-            >
-              {slot.blank ? slot.filled || '' : slot.letter}
-            </div>
-          );
-        })}
-      </div>
-
-      {isTouch ? (
-        <OnScreenKeyboard onKey={handleLetter} lastFeedback={feedback} />
-      ) : (
-        <p className="text-orange-600 text-sm">Digite a letra no teclado</p>
-      )}
-    </div>
+    </GameLayout>
   );
 }

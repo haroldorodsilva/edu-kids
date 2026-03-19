@@ -4,20 +4,19 @@ import type { Sentence } from '../../shared/data/sentences';
 import { shuffle, pickRandom } from '../../shared/utils/helpers';
 import { beep, speak } from '../../shared/utils/audio';
 import { useShake } from '../../shared/hooks/useShake';
-import DoneCard from '../../shared/components/DoneCard';
-import ProgressBar from '../../shared/components/ProgressBar';
+import { getTheme } from '../../shared/data/gameThemes';
+import GameLayout from '../../shared/components/layout/GameLayout';
+import type { GameComponentProps } from '../../shared/types';
 
-interface Props {
-  onBack: () => void;
+interface Props extends Pick<GameComponentProps, 'onBack' | 'rounds' | 'onComplete'> {
   sentencePool?: Sentence[];
-  rounds?: number;
-  onComplete?: (errors: number) => void;
 }
 
 const ROUNDS = 5;
 
 export default function BuildSentence({ onBack, sentencePool, rounds, onComplete }: Props) {
   const effectiveRounds = rounds ?? ROUNDS;
+  const theme = getTheme('buildsentence');
   const baseSentences = sentencePool ?? sentences;
   const [pool] = useState(() => pickRandom(baseSentences, effectiveRounds));
   const [round, setRound] = useState(0);
@@ -66,54 +65,63 @@ export default function BuildSentence({ onBack, sentencePool, rounds, onComplete
     }
   }
 
-  if (done) return <DoneCard score={{ correct, total: effectiveRounds }} onBack={onBack} />;
-  if (!current) return null;
+  if (!current && !done) return null;
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center" style={{ background: 'linear-gradient(135deg, #e0f2f1 0%, #4db6ac 100%)' }}>
-      <ProgressBar current={round} total={effectiveRounds} color="#00695C" />
-      <div className="flex items-center gap-3 w-full mb-4">
-        <button onClick={onBack} className="text-teal-900 text-2xl font-bold">←</button>
-        <h1 className="text-2xl font-bold text-teal-900">📝 Montar Frase</h1>
-      </div>
-
-      {/* Slots */}
-      <div className={`flex flex-wrap gap-2 justify-center mb-8 min-h-16 p-4 bg-white/50 rounded-2xl w-full max-w-lg ${shake ? 'animate-shake' : ''}`}>
-        {current.words.map((_, i) => (
-          <div
-            key={i}
-            className="px-3 py-2 rounded-xl border-2 font-bold text-lg min-w-12 text-center"
-            style={{
-              borderStyle: 'dashed',
-              borderColor: i < placed.length ? '#4CAF50' : '#B2DFDB',
-              backgroundColor: i < placed.length ? '#C8E6C9' : 'white',
-              color: i < placed.length ? '#2E7D32' : '#90A4AE',
-            }}
-          >
-            {placed[i] || '___'}
-          </div>
-        ))}
-      </div>
-
-      {/* Word buttons */}
-      <div className="flex flex-wrap gap-3 justify-center">
-        {options.map((word, i) => {
-          const usedCount = placed.filter(p => p === word).length;
-          const totalCount = current.words.filter(w => w === word).length;
-          const isUsed = usedCount >= totalCount;
-          return (
-            <button
+    <GameLayout
+      gameId="buildsentence"
+      onBack={onBack}
+      currentRound={round}
+      totalRounds={effectiveRounds}
+      done={done}
+      score={{ correct, total: effectiveRounds }}
+    >
+      <div className="flex-1 flex flex-col items-center p-4">
+        {/* Slots */}
+        <div
+          className={`flex flex-wrap gap-2 justify-center mb-8 min-h-16 p-4 bg-white/50 rounded-2xl w-full max-w-lg ${shake ? 'animate-shake' : ''}`}
+          role="status"
+          aria-live="polite"
+          aria-label="Frase em construção"
+        >
+          {current?.words.map((_, i) => (
+            <div
               key={i}
-              onClick={() => !isUsed && handleWord(word)}
-              disabled={isUsed}
-              className="px-4 py-3 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-40"
-              style={{ backgroundColor: isUsed ? '#B2DFDB' : '#00897B', color: 'white' }}
+              className={`px-3 py-2 rounded-xl border-2 font-bold text-lg min-w-12 text-center transition-all duration-300 ${
+                i < placed.length ? 'ds-feedback-correct' : ''
+              }`}
+              style={
+                i < placed.length
+                  ? { borderStyle: 'solid' }
+                  : { borderStyle: 'dashed', borderColor: theme.bg, backgroundColor: 'white', color: '#90A4AE' }
+              }
             >
-              {word}
-            </button>
-          );
-        })}
+              {placed[i] || '___'}
+            </div>
+          ))}
+        </div>
+
+        {/* Word buttons */}
+        <div className="flex flex-wrap gap-3 justify-center">
+          {options.map((word, i) => {
+            const usedCount = placed.filter(p => p === word).length;
+            const totalCount = current?.words.filter(w => w === word).length ?? 0;
+            const isUsed = usedCount >= totalCount;
+            return (
+              <button
+                key={i}
+                onClick={() => !isUsed && handleWord(word)}
+                disabled={isUsed}
+                aria-label={`Palavra ${word}`}
+                className="px-4 py-3 rounded-xl font-bold text-lg text-white shadow-lg transition-transform active:scale-95 disabled:opacity-40"
+                style={{ backgroundColor: isUsed ? theme.bg : theme.color }}
+              >
+                {word}
+              </button>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </GameLayout>
   );
 }

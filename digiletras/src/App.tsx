@@ -14,54 +14,54 @@ import AdminPanel from './features/admin/AdminPanel';
 import PathScreen from './features/path/PathScreen';
 import FreePlayScreen from './features/freeplay/FreePlayScreen';
 import LessonRunner from './features/lesson/LessonRunner';
+import AgeSelectorScreen from './features/tracks/AgeSelectorScreen';
+import TrackPathScreen from './features/tracks/TrackPathScreen';
+import TrackLessonRunner from './features/tracks/TrackLessonRunner';
+import TrackEditor from './features/admin/TrackEditor';
+import ScreenHeader from './shared/components/layout/ScreenHeader';
 import type { Word } from './shared/data/words';
+import type { GameComponentProps } from './shared/types';
 
 // ── Route state type for free-play games ────────────────────────────────────
 interface GameState { wordPool?: Word[] }
 
-// ── Free-play game wrappers (connect router → game props) ────────────────────
+// ── Generic GameRoute config & component ─────────────────────────────────────
 
-function SyllableRoute() {
+/** Configuration for a game route entry */
+export interface GameRouteConfig {
+  /** Game identifier used in the URL path: /freeplay/:id */
+  id: string;
+  /** The game component to render */
+  component: React.ComponentType<GameComponentProps>;
+  /** If true, don't pass wordPool from navigation state (e.g. BuildSentence, MatchGame, Coloring) */
+  noWordPool?: boolean;
+}
+
+/** All 9 free-play game routes in a single config array */
+export const GAME_ROUTES: GameRouteConfig[] = [
+  { id: 'syllable',      component: Syllable },
+  { id: 'quiz',          component: Quiz },
+  { id: 'fill',          component: Fill },
+  { id: 'memory',        component: Memory },
+  { id: 'write',         component: Write },
+  { id: 'firstletter',   component: FirstLetter },
+  { id: 'buildsentence', component: BuildSentence, noWordPool: true },
+  { id: 'matchgame',     component: MatchGame,     noWordPool: true },
+  { id: 'coloring',      component: Coloring,      noWordPool: true },
+];
+
+/** Generic component that connects React Router → any Game Component via config */
+export function GameRoute({ config }: { config: GameRouteConfig }) {
   const nav = useNavigate();
+  // as { state: ... } — useLocation().state is typed as `unknown`; we narrow it to our expected GameState shape
   const { state } = useLocation() as { state: GameState | null };
-  return <Syllable wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
-}
-function QuizRoute() {
-  const nav = useNavigate();
-  const { state } = useLocation() as { state: GameState | null };
-  return <Quiz wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
-}
-function FillRoute() {
-  const nav = useNavigate();
-  const { state } = useLocation() as { state: GameState | null };
-  return <Fill wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
-}
-function MemoryRoute() {
-  const nav = useNavigate();
-  const { state } = useLocation() as { state: GameState | null };
-  return <Memory wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
-}
-function WriteRoute() {
-  const nav = useNavigate();
-  const { state } = useLocation() as { state: GameState | null };
-  return <Write wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
-}
-function FirstLetterRoute() {
-  const nav = useNavigate();
-  const { state } = useLocation() as { state: GameState | null };
-  return <FirstLetter wordPool={state?.wordPool} onBack={() => nav('/freeplay')} />;
-}
-function BuildSentenceRoute() {
-  const nav = useNavigate();
-  return <BuildSentence onBack={() => nav('/freeplay')} />;
-}
-function MatchGameRoute() {
-  const nav = useNavigate();
-  return <MatchGame onBack={() => nav('/freeplay')} />;
-}
-function ColoringRoute() {
-  const nav = useNavigate();
-  return <Coloring onBack={() => nav('/freeplay')} />;
+  const Component = config.component;
+  return (
+    <Component
+      onBack={() => nav('/freeplay')}
+      {...(!config.noWordPool && state?.wordPool ? { wordPool: state.wordPool } : {})}
+    />
+  );
 }
 function StoryPickerRoute() {
   const nav = useNavigate();
@@ -120,21 +120,43 @@ function AdminRoute() {
   const nav = useNavigate();
   return <AdminPanel onBack={() => nav('/freeplay')} />;
 }
+function AgeSelectorRoute() {
+  return <AgeSelectorScreen />;
+}
+function TrackPathRoute() {
+  return <TrackPathScreen />;
+}
+function TrackLessonRoute() {
+  return <TrackLessonRunner />;
+}
+function TrackEditorRoute() {
+  const nav = useNavigate();
+  const { ageGroup } = useParams<{ ageGroup: string }>();
+  return (
+    <div className="ds-screen" style={{ background: 'var(--color-bg)', overflowY: 'auto' }}>
+      <ScreenHeader
+        title="Editar Trilhas"
+        emoji="🛤️"
+        onBack={() => nav(`/tracks/${ageGroup || '3-4'}`)}
+      />
+      <TrackEditor />
+    </div>
+  );
+}
 
 // ── Router definition ────────────────────────────────────────────────────────
 
 const router = createHashRouter([
-  { path: '/',                           element: <PathRoute /> },
+  { path: '/',                           element: <AgeSelectorRoute /> },
+  { path: '/path',                       element: <PathRoute /> },
+  { path: '/tracks/:ageGroup',           element: <TrackPathRoute /> },
+  { path: '/tracks/:ageGroup/edit',      element: <TrackEditorRoute /> },
+  { path: '/tracks/:ageGroup/lesson/:trackId/:unitIdx/:lessonIdx', element: <TrackLessonRoute /> },
   { path: '/freeplay',                   element: <FreePlayRoute /> },
-  { path: '/freeplay/syllable',          element: <SyllableRoute /> },
-  { path: '/freeplay/quiz',              element: <QuizRoute /> },
-  { path: '/freeplay/fill',              element: <FillRoute /> },
-  { path: '/freeplay/memory',            element: <MemoryRoute /> },
-  { path: '/freeplay/write',             element: <WriteRoute /> },
-  { path: '/freeplay/firstletter',       element: <FirstLetterRoute /> },
-  { path: '/freeplay/buildsentence',     element: <BuildSentenceRoute /> },
-  { path: '/freeplay/matchgame',         element: <MatchGameRoute /> },
-  { path: '/freeplay/coloring',          element: <ColoringRoute /> },
+  ...GAME_ROUTES.map(config => ({
+    path: `/freeplay/${config.id}`,
+    element: <GameRoute config={config} />,
+  })),
   { path: '/freeplay/storypicker',       element: <StoryPickerRoute /> },
   { path: '/stories/:storyId/:mode',     element: <StoryPlayerRoute /> },
   { path: '/lesson/:unitId/:lessonId',   element: <LessonRoute /> },

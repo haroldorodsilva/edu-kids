@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   getMatchGames, saveMatchGame, deleteMatchGame, isBuiltinGame,
-  type MatchGame, type MatchPair, type MatchType,
+  type MatchGame, type MatchPair, type MatchMode,
 } from '../../shared/data/matchGames';
 
 function newId()     { return `mg_${Date.now()}`; }
@@ -9,9 +9,10 @@ function newPairId() { return `p_${Date.now()}_${Math.random().toString(36).slic
 
 function emptyGame(): MatchGame {
   return {
-    id: newId(), name: '', emoji: '🔗',
+    id: newId(), title: '', emoji: '🔗',
     description: '', instructions: '',
-    type: 'connect',
+    mode: 'connect',
+    difficulty: 1,
     pairs: [
       { id: newPairId(), left: '', right: '' },
       { id: newPairId(), left: '', right: '' },
@@ -69,17 +70,17 @@ export default function MatchGameEditor() {
           }}>
             <span style={{ fontSize: 32, lineHeight: 1 }}>{game.emoji}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--color-text)' }}>{game.name || 'Sem nome'}</div>
+              <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--color-text)' }}>{game.title || 'Sem nome'}</div>
               <div style={{ fontSize: 11, color: 'var(--color-text-2)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {game.description}
               </div>
               <div style={{ display: 'flex', gap: 6, marginTop: 5 }}>
                 <span style={{
-                  background: game.type === 'connect' ? '#6C5CE722' : game.type === 'count' ? '#0984E322' : '#00B89422',
-                  color:      game.type === 'connect' ? '#6C5CE7'   : game.type === 'count' ? '#0984E3'   : '#00B894',
+                  background: game.mode === 'connect' ? '#6C5CE722' : game.mode === 'count' ? '#0984E322' : '#00B89422',
+                  color:      game.mode === 'connect' ? '#6C5CE7'   : game.mode === 'count' ? '#0984E3'   : '#00B894',
                   borderRadius: 999, padding: '2px 8px', fontSize: 10, fontWeight: 700,
                 }}>
-                  {game.type === 'connect' ? '🔗 Ligar' : game.type === 'count' ? '🔢 Contar' : '⌨️ Digitar'}
+                  {game.mode === 'connect' ? '🔗 Ligar' : game.mode === 'count' ? '🔢 Contar' : '⌨️ Digitar'}
                 </span>
                 <span style={{
                   background: 'var(--color-bg)', color: 'var(--color-text-2)',
@@ -146,11 +147,11 @@ function GameForm({ game, onSave, onCancel }: {
   onSave: (g: MatchGame) => void;
   onCancel: () => void;
 }) {
-  const [name,         setName]         = useState(game.name);
+  const [title,        setTitle]        = useState(game.title);
   const [emoji,        setEmoji]        = useState(game.emoji);
   const [description,  setDescription]  = useState(game.description);
   const [instructions, setInstructions] = useState(game.instructions);
-  const [type,         setType]         = useState<MatchType>(game.type);
+  const [mode,         setMode]         = useState<MatchMode>(game.mode);
   const [pairs,        setPairs]        = useState<MatchPair[]>(game.pairs);
   const [error,        setError]        = useState('');
 
@@ -168,12 +169,12 @@ function GameForm({ game, onSave, onCancel }: {
   }
 
   function handleSave() {
-    if (!name.trim()) { setError('Informe o nome do jogo'); return; }
+    if (!title.trim()) { setError('Informe o nome do jogo'); return; }
     if (pairs.some(p => !p.left.trim() || !p.right.trim())) {
       setError('Preencha todos os pares (esquerda e direita)'); return;
     }
     if (pairs.length < 2) { setError('Adicione pelo menos 2 pares'); return; }
-    onSave({ id: game.id, name: name.trim(), emoji, description: description.trim(), instructions: instructions.trim(), type, pairs });
+    onSave({ id: game.id, title: title.trim(), emoji, description: description.trim(), instructions: instructions.trim(), mode, difficulty: game.difficulty, pairs });
   }
 
   const labelStyle: React.CSSProperties = {
@@ -194,7 +195,7 @@ function GameForm({ game, onSave, onCancel }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <button onClick={onCancel} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--color-primary)' }}>←</button>
         <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: 'var(--color-text)' }}>
-          {game.name ? 'Editar Jogo' : 'Novo Jogo'}
+          {game.title ? 'Editar Jogo' : 'Novo Jogo'}
         </h2>
       </div>
 
@@ -207,7 +208,7 @@ function GameForm({ game, onSave, onCancel }: {
         </div>
         <div style={{ flex: 1 }}>
           <label style={labelStyle}>Nome do jogo</label>
-          <input value={name} onChange={e => setName(e.target.value)}
+          <input value={title} onChange={e => setTitle(e.target.value)}
             placeholder="Ex: Animais e Sons"
             style={inputStyle} />
         </div>
@@ -235,13 +236,14 @@ function GameForm({ game, onSave, onCancel }: {
               { id: 'connect', label: '🔗 Ligar colunas' },
               { id: 'type',    label: '⌨️ Digitar resposta' },
               { id: 'count',   label: '🔢 Contar' },
-            ] as { id: MatchType; label: string }[]).map(t => (
-            <button key={t.id} onClick={() => setType(t.id)} style={{
+            // as { id: MatchMode; ... }[] — literal array needs assertion so `id` is typed as MatchMode union, not string
+            ] as { id: MatchMode; label: string }[]).map(t => (
+            <button key={t.id} onClick={() => setMode(t.id)} style={{
               flex: 1, padding: '10px 4px',
               borderRadius: 'var(--radius-md)',
-              border: `2.5px solid ${type === t.id ? 'var(--color-primary)' : 'var(--color-border)'}`,
-              background: type === t.id ? '#6C5CE715' : 'var(--color-surface)',
-              color: type === t.id ? 'var(--color-primary)' : 'var(--color-text-2)',
+              border: `2.5px solid ${mode === t.id ? 'var(--color-primary)' : 'var(--color-border)'}`,
+              background: mode === t.id ? '#6C5CE715' : 'var(--color-surface)',
+              color: mode === t.id ? 'var(--color-primary)' : 'var(--color-text-2)',
               fontWeight: 700, fontSize: 12, cursor: 'pointer', outline: 'none',
               transition: 'all .15s',
             }}>
@@ -250,9 +252,9 @@ function GameForm({ game, onSave, onCancel }: {
           ))}
         </div>
         <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>
-          {type === 'connect'
+          {mode === 'connect'
             ? 'A criança clica na coluna esquerda e liga à resposta certa na coluna direita.'
-            : type === 'type'
+            : mode === 'type'
             ? 'A criança digita a resposta correta para cada item da coluna esquerda.'
             : 'A criança conta os objetos mostrados e digita o número.'}
         </p>

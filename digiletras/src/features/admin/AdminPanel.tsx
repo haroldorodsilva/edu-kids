@@ -5,10 +5,12 @@ import WordBank from './WordBank';
 import AIGenerator from './AIGenerator';
 import MatchGameEditor from './MatchGameEditor';
 import ColoringEditor from './ColoringEditor';
+import TrackEditor from './TrackEditor';
+import ScreenHeader from '../../shared/components/layout/ScreenHeader';
 
 interface Props { onBack: () => void; }
 
-type Tab = 'dashboard' | 'stories' | 'words' | 'ai' | 'matchgame' | 'coloring';
+type Tab = 'dashboard' | 'stories' | 'words' | 'ai' | 'matchgame' | 'coloring' | 'tracks';
 
 const TABS: { id: Tab; label: string; icon: string; color: string }[] = [
   { id: 'dashboard',   label: 'Dashboard', icon: '📊', color: '#6C5CE7' },
@@ -17,6 +19,7 @@ const TABS: { id: Tab; label: string; icon: string; color: string }[] = [
   { id: 'matchgame',   label: 'Ligar',     icon: '🔗', color: '#6A1B9A' },
   { id: 'coloring',    label: 'Pintar',    icon: '🎨', color: '#E65100' },
   { id: 'ai',          label: 'IA',        icon: '🤖', color: '#00B894' },
+  { id: 'tracks',      label: 'Trilhas',   icon: '🛤️', color: '#00897B' },
 ];
 
 export default function AdminPanel({ onBack }: Props) {
@@ -28,38 +31,12 @@ export default function AdminPanel({ onBack }: Props) {
     <div className="ds-screen" style={{ background: 'var(--color-bg)', overflowY: 'auto' }}>
 
       {/* ── Header ─────────────────────────────────────────────── */}
-      <header style={{
-        background: 'var(--gradient-primary)',
-        padding: '14px 16px 12px',
-        display: 'flex', alignItems: 'center', gap: 12,
-        position: 'sticky', top: 0, zIndex: 20,
-        boxShadow: '0 2px 12px rgba(108,92,231,0.35)',
-      }}>
-        <button
-          onClick={onBack}
-          style={{
-            width: 36, height: 36,
-            borderRadius: 12,
-            background: 'rgba(255,255,255,0.15)',
-            border: '1.5px solid rgba(255,255,255,0.25)',
-            color: '#fff', fontSize: 18, fontWeight: 700,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            outline: 'none',
-            transition: 'background 0.15s',
-          }}
-          aria-label="Voltar"
-        >
-          ←
-        </button>
-        <div>
-          <h1 style={{ fontSize: 18, fontWeight: 800, color: '#fff', margin: 0 }}>
-            ⚙️ Painel Admin
-          </h1>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', margin: 0 }}>
-            {activeTab.icon} {activeTab.label}
-          </p>
-        </div>
-      </header>
+      <ScreenHeader
+        title="Painel Admin"
+        emoji="⚙️"
+        onBack={onBack}
+        subtitle={`${activeTab.icon} ${activeTab.label}`}
+      />
 
       {/* ── Tab bar ────────────────────────────────────────────── */}
       <div style={{
@@ -115,6 +92,7 @@ export default function AdminPanel({ onBack }: Props) {
         {tab === 'matchgame'   && <MatchGameEditor />}
         {tab === 'coloring'    && <ColoringEditor />}
         {tab === 'ai'          && <AIGenerator />}
+        {tab === 'tracks'      && <TrackEditor />}
       </div>
     </div>
   );

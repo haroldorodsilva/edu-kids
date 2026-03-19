@@ -3,9 +3,9 @@ import { getAllStories } from '../../shared/data/customStories';
 import { speak, beep } from '../../shared/utils/audio';
 import { isTouchDevice } from '../../shared/utils/device';
 import { useKeyboardInput } from '../../shared/hooks/useKeyboardInput';
-import DoneCard from '../../shared/components/DoneCard';
-import ProgressBar from '../../shared/components/ProgressBar';
-import OnScreenKeyboard from '../../shared/components/OnScreenKeyboard';
+import DoneCard from '../../shared/components/feedback/DoneCard';
+import ProgressBar from '../../shared/components/feedback/ProgressBar';
+import OnScreenKeyboard from '../../shared/components/ui/OnScreenKeyboard';
 
 interface Props {
   storyId: string;
