@@ -6,7 +6,7 @@ import type { AgeGroup } from '../config/ageGroups';
 
 export type CustomGameType =
   | 'syllable' | 'quiz' | 'fill' | 'memory' | 'write'
-  | 'firstletter' | 'buildsentence' | 'matchgame' | 'coloring' | 'story';
+  | 'firstletter' | 'buildsentence' | 'matchgame' | 'story';
 
 export interface CustomActivity {
   id: string;
@@ -128,6 +128,5 @@ export const GAME_TYPE_LABELS: Record<CustomGameType, { label: string; icon: str
   firstletter:   { label: 'Letra Inicial',    icon: 'CaseSensitive' },
   buildsentence: { label: 'Montar Frase',     icon: 'FileText' },
   matchgame:     { label: 'Ligar / Digitar',  icon: 'Link' },
-  coloring:      { label: 'Pintar',           icon: 'Palette' },
   story:         { label: 'Histórias',        icon: 'BookOpen' },
 };

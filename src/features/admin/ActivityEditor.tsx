@@ -354,7 +354,7 @@ function ActivityForm({ activity, onSave, onCancel }: FormProps) {
       </div>
 
       {/* Word categories filter (for word-based games) */}
-      {!['matchgame', 'coloring', 'story'].includes(gameType) && (
+      {!['matchgame', 'story'].includes(gameType) && (
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Categorias de palavras (vazio = todas)</label>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>

@@ -22,7 +22,6 @@ export const GAME_THEMES = [
   { id: 'buildsentence', icon: 'FileText',       label: 'Montar Frase',   color: '#00695C', bg: '#E0F2F1', gradient: 'linear-gradient(135deg, #E0F2F1, #80CBC4)', textColor: '#00695C' },
   { id: 'storypicker',   icon: 'BookOpen',       label: 'Histórias',      color: '#1565C0', bg: '#E3F2FD', gradient: 'linear-gradient(135deg, #E3F2FD, #90CAF9)', textColor: '#1565C0' },
   { id: 'matchgame',     icon: 'Link',           label: 'Ligar / Digitar', color: '#6A1B9A', bg: '#F3E5F5', gradient: 'linear-gradient(135deg, #F3E5F5, #CE93D8)', textColor: '#6A1B9A' },
-  { id: 'coloring',      icon: 'Palette',        label: 'Pintar',         color: '#E65100', bg: '#FFF3E0', gradient: 'linear-gradient(135deg, #FFF3E0, #FFCC80)', textColor: '#BF360C' },
 ] as const satisfies readonly GameTheme[];
 
 /** Union type of all valid game IDs, derived from GAME_THEMES */

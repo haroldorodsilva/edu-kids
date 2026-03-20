@@ -9,7 +9,6 @@ import Write from './features/games/Write';
 import FirstLetter from './features/games/FirstLetter';
 import BuildSentence from './features/games/BuildSentence';
 import MatchGame from './features/games/MatchGame';
-import Coloring from './features/games/Coloring';
 import StoryPicker from './features/stories/StoryPicker';
 import StoryPlayer from './features/stories/StoryPlayer';
 import AdminPanel from './features/admin/AdminPanel';
@@ -35,7 +34,7 @@ export interface GameRouteConfig {
   id: string;
   /** The game component to render */
   component: React.ComponentType<GameComponentProps>;
-  /** If true, don't pass wordPool from navigation state (e.g. BuildSentence, MatchGame, Coloring) */
+  /** If true, don't pass wordPool from navigation state (e.g. BuildSentence, MatchGame) */
   noWordPool?: boolean;
 }
 
@@ -49,7 +48,6 @@ export const GAME_ROUTES: GameRouteConfig[] = [
   { id: 'firstletter',   component: FirstLetter },
   { id: 'buildsentence', component: BuildSentence, noWordPool: true },
   { id: 'matchgame',     component: MatchGame,     noWordPool: true },
-  { id: 'coloring',      component: Coloring,      noWordPool: true },
 ];
 
 /** Generic component that connects React Router → any Game Component via config */
