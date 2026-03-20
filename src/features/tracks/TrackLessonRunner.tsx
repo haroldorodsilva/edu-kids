@@ -19,6 +19,7 @@ import MatchGame from '../games/MatchGame';
 import VowelGame from '../games/VowelGame';
 import SyllableFamily from '../games/SyllableFamily';
 import DictationGame from '../games/DictationGame';
+import SyllableFill from '../games/SyllableFill';
 
 function calcStars(totalErrors: number, totalActivities: number): number {
   const errorRate = totalErrors / Math.max(totalActivities * 3, 1);
@@ -215,6 +216,9 @@ export default function TrackLessonRunner() {
         )}
         {activity.gameType === 'ditado' && (
           <DictationGame key={activityIdx} onBack={gameBack} wordPool={wordPool.length > 0 ? wordPool : undefined} rounds={activity.rounds} onComplete={gameComplete} />
+        )}
+        {activity.gameType === 'silfill' && (
+          <SyllableFill key={activityIdx} onBack={gameBack} rounds={activity.rounds} onComplete={gameComplete} />
         )}
       </div>
     </div>

@@ -5,120 +5,223 @@ interface Props {
   showSpace?: boolean;
   showBackspace?: boolean;
   lastFeedback?: 'ok' | 'no' | null;
+  /** Se true, mostra sempre o backspace independente de showBackspace */
+  alwaysBackspace?: boolean;
 }
 
-// Linhas do teclado português
-const ROWS = [
-  ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'],
-  ['k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't'],
-  ['u', 'v', 'x', 'z', 'ç'],
-  ['á', 'à', 'â', 'ã', 'é', 'ê', 'í', 'ó', 'ô', 'õ', 'ú'],
-];
+// Layout QWERTY português — 3 fileiras principais
+const ROW1 = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'];
+const ROW2 = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ç'];
+const ROW3 = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
+
+// Acentos separados — aparecem ao tocar "Á?"
+const ACCENTS = ['á', 'à', 'â', 'ã', 'é', 'ê', 'í', 'ó', 'ô', 'õ', 'ú'];
 
 export default function OnScreenKeyboard({
   onKey,
   showSpace = false,
   showBackspace = false,
   lastFeedback = null,
+  alwaysBackspace = false,
 }: Props) {
-  const [pressed, setPressed] = useState<string | null>(null);
+  const [pressed, setPressedKey] = useState<string | null>(null);
+  const [showAccents, setShowAccents] = useState(false);
+
+  const showBs = showBackspace || alwaysBackspace;
 
   function handlePress(key: string) {
-    setPressed(key);
+    setPressedKey(key);
     onKey(key);
-    setTimeout(() => setPressed(null), 150);
+    setTimeout(() => setPressedKey(null), 120);
   }
+
+  function keyBg(key: string): string {
+    if (pressed !== key) return 'white';
+    if (lastFeedback === 'ok') return '#C8E6C9';
+    if (lastFeedback === 'no') return '#FFCDD2';
+    return '#E8E0FF';
+  }
+
+  const keyBase: React.CSSProperties = {
+    height: 52,
+    borderRadius: 10,
+    border: '1.5px solid #D1D5DB',
+    fontFamily: 'var(--font-family)',
+    fontWeight: 700,
+    fontSize: 19,
+    cursor: 'pointer',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    WebkitTapHighlightColor: 'transparent',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'transform 0.08s, background-color 0.08s',
+    boxShadow: '0 3px 0 #C4C9D4',
+    outline: 'none',
+    flex: 1,
+    minWidth: 0,
+    color: '#1a1a2e',
+  };
 
   function keyStyle(key: string): React.CSSProperties {
     const isPressed = pressed === key;
-    const feedbackBg =
-      isPressed && lastFeedback === 'ok' ? 'var(--feedback-ok-light)' :
-      isPressed && lastFeedback === 'no' ? 'var(--feedback-error-light)' :
-      isPressed ? 'var(--neutral-200)' : 'white';
-
     return {
-      minWidth: 32,
-      minHeight: 44,
-      padding: '0 6px',
-      backgroundColor: feedbackBg,
-      border: '1.5px solid var(--neutral-200)',
-      borderRadius: 8,
-      fontSize: 16,
-      fontWeight: 700,
-      cursor: 'pointer',
-      userSelect: 'none',
-      WebkitUserSelect: 'none',
-      transform: isPressed ? 'scale(0.9)' : 'scale(1)',
-      transition: 'transform 0.1s, background-color 0.1s',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.12)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flex: 1,
+      ...keyBase,
+      backgroundColor: keyBg(key),
+      transform: isPressed ? 'scale(0.88) translateY(2px)' : 'scale(1)',
+      boxShadow: isPressed ? 'none' : '0 3px 0 #C4C9D4',
     };
   }
+
+  const specialStyle: React.CSSProperties = {
+    ...keyBase,
+    flex: 'none',
+    width: 48,
+    backgroundColor: '#F3F4F6',
+    border: '1.5px solid #D1D5DB',
+    fontSize: 22,
+    color: '#4B5563',
+  };
+
+  const accentToggleStyle: React.CSSProperties = {
+    ...keyBase,
+    flex: 'none',
+    width: 52,
+    backgroundColor: showAccents ? '#EDE9FE' : '#F3F4F6',
+    border: `1.5px solid ${showAccents ? '#7C3AED' : '#D1D5DB'}`,
+    fontSize: 13,
+    fontWeight: 800,
+    color: showAccents ? '#7C3AED' : '#6B7280',
+  };
 
   return (
     <div
       style={{
         width: '100%',
         maxWidth: 480,
-        background: '#F5F5F5',
+        background: '#E8EAED',
         borderRadius: 16,
-        padding: '10px 6px 8px',
+        padding: '10px 6px 10px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 6,
+        gap: 7,
+        boxShadow: '0 -2px 12px rgba(0,0,0,0.08)',
       }}
     >
-      {ROWS.map((row, ri) => (
-        <div key={ri} style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-          {row.map(key => (
+      {/* Acentos (expansível) */}
+      {showAccents && (
+        <div style={{ display: 'flex', gap: 4, justifyContent: 'center', flexWrap: 'wrap', paddingBottom: 2 }}>
+          {ACCENTS.map(key => (
             <button
               key={key}
               onPointerDown={e => { e.preventDefault(); handlePress(key); }}
-              style={keyStyle(key)}
+              style={{
+                ...keyStyle(key),
+                flex: 'none',
+                width: 40,
+                height: 48,
+                fontSize: 18,
+                borderColor: '#A78BFA',
+                background: pressed === key ? '#EDE9FE' : '#F5F3FF',
+              }}
               aria-label={`Letra ${key.toUpperCase()}`}
             >
               {key.toUpperCase()}
             </button>
           ))}
         </div>
-      ))}
+      )}
 
-      {/* Linha de ações */}
-      {(showSpace || showBackspace) && (
-        <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-          {showSpace && (
-            <button
-              onPointerDown={e => { e.preventDefault(); handlePress(' '); }}
-              style={{
-                ...keyStyle(' '),
-                flex: 3,
-                fontSize: 13,
-                color: '#666',
-                letterSpacing: 1,
-              }}
-              aria-label="Espaço"
-            >
-              espaço
-            </button>
-          )}
-          {showBackspace && (
-            <button
-              onPointerDown={e => { e.preventDefault(); handlePress('Backspace'); }}
-              style={{
-                ...keyStyle('Backspace'),
-                flex: 1,
-                backgroundColor: pressed === 'Backspace' ? 'var(--feedback-error-light)' : '#FFE0E0',
-                color: 'var(--feedback-error-dark)',
-                fontSize: 20,
-              }}
-              aria-label="Apagar"
-            >
-              ⌫
-            </button>
-          )}
+      {/* Linha 1: Q W E R T Y U I O P */}
+      <div style={{ display: 'flex', gap: 5 }}>
+        {ROW1.map(key => (
+          <button
+            key={key}
+            onPointerDown={e => { e.preventDefault(); handlePress(key); }}
+            style={keyStyle(key)}
+            aria-label={`Letra ${key.toUpperCase()}`}
+          >
+            {key.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      {/* Linha 2: A S D F G H J K L Ç (centralizada) */}
+      <div style={{ display: 'flex', gap: 5, paddingLeft: 10, paddingRight: 10 }}>
+        {ROW2.map(key => (
+          <button
+            key={key}
+            onPointerDown={e => { e.preventDefault(); handlePress(key); }}
+            style={keyStyle(key)}
+            aria-label={`Letra ${key.toUpperCase()}`}
+          >
+            {key.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      {/* Linha 3: [⌫] Z X C V B N M [Á?] */}
+      <div style={{ display: 'flex', gap: 5, alignItems: 'stretch' }}>
+        {/* Backspace */}
+        {showBs && (
+          <button
+            onPointerDown={e => { e.preventDefault(); handlePress('Backspace'); }}
+            style={{
+              ...specialStyle,
+              backgroundColor: pressed === 'Backspace' ? '#FFCDD2' : '#FFE4E1',
+              border: '1.5px solid #FECACA',
+              color: '#DC2626',
+              transform: pressed === 'Backspace' ? 'scale(0.88) translateY(2px)' : 'scale(1)',
+              boxShadow: pressed === 'Backspace' ? 'none' : '0 3px 0 #FCA5A5',
+            }}
+            aria-label="Apagar"
+          >
+            ⌫
+          </button>
+        )}
+
+        {ROW3.map(key => (
+          <button
+            key={key}
+            onPointerDown={e => { e.preventDefault(); handlePress(key); }}
+            style={keyStyle(key)}
+            aria-label={`Letra ${key.toUpperCase()}`}
+          >
+            {key.toUpperCase()}
+          </button>
+        ))}
+
+        {/* Toggle acentos */}
+        <button
+          onPointerDown={e => { e.preventDefault(); setShowAccents(v => !v); }}
+          style={{
+            ...accentToggleStyle,
+            transform: pressed === '__accent' ? 'scale(0.88) translateY(2px)' : 'scale(1)',
+            boxShadow: showAccents ? '0 3px 0 #7C3AED55' : '0 3px 0 #C4C9D4',
+          }}
+          aria-label="Mostrar acentos"
+          aria-pressed={showAccents}
+        >
+          Á?
+        </button>
+      </div>
+
+      {/* Espaço (opcional) */}
+      {showSpace && (
+        <div style={{ display: 'flex', gap: 5 }}>
+          <button
+            onPointerDown={e => { e.preventDefault(); handlePress(' '); }}
+            style={{
+              ...keyStyle(' '),
+              fontSize: 13,
+              color: '#6B7280',
+              letterSpacing: 1,
+            }}
+            aria-label="Espaço"
+          >
+            espaço
+          </button>
         </div>
       )}
     </div>

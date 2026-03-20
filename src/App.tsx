@@ -12,6 +12,7 @@ import MatchGame from './features/games/MatchGame';
 import VowelGame from './features/games/VowelGame';
 import SyllableFamily from './features/games/SyllableFamily';
 import DictationGame from './features/games/DictationGame';
+import SyllableFill from './features/games/SyllableFill';
 import StoryPicker from './features/stories/StoryPicker';
 import StoryPlayer from './features/stories/StoryPlayer';
 import AdminPanel from './features/admin/AdminPanel';
@@ -55,6 +56,7 @@ export const GAME_ROUTES: GameRouteConfig[] = [
   { id: 'vowelgame',     component: VowelGame },
   { id: 'silfamilia',    component: SyllableFamily, noWordPool: true },
   { id: 'ditado',        component: DictationGame },
+  { id: 'silfill',       component: SyllableFill,   noWordPool: true },
 ];
 
 /** Generic component that connects React Router → any Game Component via config */

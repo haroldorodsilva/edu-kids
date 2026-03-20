@@ -5,7 +5,7 @@ export type AgeGroup = '3-4' | '5-6' | '7-8' | '9-10';
 export type TrackGameType =
   | 'syllable' | 'quiz' | 'fill' | 'memory' | 'write'
   | 'firstletter' | 'buildsentence' | 'story' | 'matchgame'
-  | 'vowelgame' | 'silfamilia' | 'ditado';
+  | 'vowelgame' | 'silfamilia' | 'ditado' | 'silfill';
 
 /** Configuração de uma atividade dentro de uma lição */
 export interface TrackActivity {

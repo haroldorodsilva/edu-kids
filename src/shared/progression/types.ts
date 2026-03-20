@@ -1,4 +1,4 @@
-export type GameType = 'syllable' | 'quiz' | 'fill' | 'memory' | 'write' | 'firstletter' | 'buildsentence' | 'story' | 'vowelgame' | 'silfamilia' | 'ditado';
+export type GameType = 'syllable' | 'quiz' | 'fill' | 'memory' | 'write' | 'firstletter' | 'buildsentence' | 'story' | 'vowelgame' | 'silfamilia' | 'ditado' | 'silfill';
 
 export interface Activity {
   id: string;

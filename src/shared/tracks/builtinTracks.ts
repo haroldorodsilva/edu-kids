@@ -220,7 +220,8 @@ export const BUILTIN_TRACKS: Track[] = [
             emoji: '🍌',
             activities: [
               { id: 'a-5-6-2-1-1', gameType: 'silfamilia', wordIds: [], rounds: 5 },
-              { id: 'a-5-6-2-1-2', gameType: 'syllable', wordIds: ['w-1', 'w-15', 'w-72', 'w-31', 'w-79'], rounds: 5 },
+              { id: 'a-5-6-2-1-2', gameType: 'silfill',    wordIds: [], rounds: 5 },
+              { id: 'a-5-6-2-1-3', gameType: 'syllable', wordIds: ['w-1', 'w-15', 'w-72', 'w-31', 'w-79'], rounds: 5 },
             ],
           },
           {
@@ -229,7 +230,8 @@ export const BUILTIN_TRACKS: Track[] = [
             emoji: '🍯',
             activities: [
               { id: 'a-5-6-2-2-1', gameType: 'silfamilia', wordIds: [], rounds: 5 },
-              { id: 'a-5-6-2-2-2', gameType: 'fill', wordIds: ['w-1', 'w-15', 'w-72', 'w-31'], rounds: 4 },
+              { id: 'a-5-6-2-2-2', gameType: 'silfill',    wordIds: [], rounds: 5 },
+              { id: 'a-5-6-2-2-3', gameType: 'fill', wordIds: ['w-1', 'w-15', 'w-72', 'w-31'], rounds: 4 },
             ],
           },
           {
@@ -238,16 +240,26 @@ export const BUILTIN_TRACKS: Track[] = [
             emoji: '🦆',
             activities: [
               { id: 'a-5-6-2-3-1', gameType: 'silfamilia', wordIds: [], rounds: 5 },
-              { id: 'a-5-6-2-3-2', gameType: 'syllable', wordIds: ['w-3', 'w-25', 'w-26', 'w-91', 'w-92'], rounds: 5 },
+              { id: 'a-5-6-2-3-2', gameType: 'silfill',    wordIds: [], rounds: 5 },
+              { id: 'a-5-6-2-3-3', gameType: 'syllable', wordIds: ['w-3', 'w-25', 'w-26', 'w-91', 'w-92'], rounds: 5 },
             ],
           },
           {
             id: 'l-5-6-2-4',
+            title: 'Família F (FA FE FI FO FU)',
+            emoji: '🧚',
+            activities: [
+              { id: 'a-5-6-2-4-1', gameType: 'silfamilia', wordIds: [], rounds: 5 },
+              { id: 'a-5-6-2-4-2', gameType: 'silfill',    wordIds: [], rounds: 6 },
+            ],
+          },
+          {
+            id: 'l-5-6-2-5',
             title: 'Mistura de Famílias',
             emoji: '🎯',
             activities: [
-              { id: 'a-5-6-2-4-1', gameType: 'silfamilia', wordIds: [], rounds: 8 },
-              { id: 'a-5-6-2-4-2', gameType: 'fill', wordIds: ['w-15', 'w-26', 'w-30', 'w-79', 'w-91'], rounds: 5 },
+              { id: 'a-5-6-2-5-1', gameType: 'silfill',    wordIds: [], rounds: 8 },
+              { id: 'a-5-6-2-5-2', gameType: 'fill', wordIds: ['w-15', 'w-26', 'w-30', 'w-79', 'w-91'], rounds: 5 },
             ],
           },
         ],
@@ -352,7 +364,8 @@ export const BUILTIN_TRACKS: Track[] = [
             emoji: '🐯',
             activities: [
               { id: 'a-7-8-1-1-1', gameType: 'silfamilia', wordIds: [], rounds: 8 },
-              { id: 'a-7-8-1-1-2', gameType: 'syllable', wordIds: ['w-11', 'w-30', 'w-78', 'w-82', 'w-3'], rounds: 5 },
+              { id: 'a-7-8-1-1-2', gameType: 'silfill',    wordIds: [], rounds: 8 },
+              { id: 'a-7-8-1-1-3', gameType: 'syllable', wordIds: ['w-11', 'w-30', 'w-78', 'w-82', 'w-3'], rounds: 5 },
             ],
           },
           {
