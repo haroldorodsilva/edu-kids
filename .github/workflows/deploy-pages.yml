@@ -31,7 +31,7 @@ jobs:
       - name: Build app
         run: yarn build
         env:
-          VITE_BASE: /edu-kids/
+          VITE_BASE: /silabrinca/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
