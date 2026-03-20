@@ -60,10 +60,10 @@ Também usa: Web Audio API (efeitos sonoros), Web Speech API (TTS nativo), lucid
 # Clonar e instalar
 git clone https://github.com/haroldorodsilva/digiletras.git
 cd digiletras/digiletras
-npm install
+yarn install
 
 # Rodar em desenvolvimento
-npm run dev
+yarn dev
 ```
 
 Acesse `http://localhost:5173` no navegador.
@@ -101,9 +101,9 @@ A edge function `api/generate-story.ts` roda automaticamente na Vercel.
 
 ```bash
 cd digiletras
-npm test          # 112 testes property-based com fast-check
+yarn test         # 112 testes property-based com fast-check
 npx tsc --noEmit  # Verificação de tipos
-npm run build     # Build de produção
+yarn build        # Build de produção
 ```
 
 ## 📁 Estrutura do Projeto

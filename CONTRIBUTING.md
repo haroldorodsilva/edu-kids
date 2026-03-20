@@ -9,7 +9,7 @@ Obrigado pelo interesse em contribuir! 🎉 Este guia vai te ajudar a começar.
    ```bash
    git clone https://github.com/haroldorodsilva/digiletras.git
    cd digiletras/digiletras
-   npm install
+   yarn install
    ```
 3. Crie uma branch para sua feature/fix:
    ```bash
@@ -20,19 +20,19 @@ Obrigado pelo interesse em contribuir! 🎉 Este guia vai te ajudar a começar.
 
 ```bash
 # Rodar em modo dev
-npm run dev
+yarn dev
 
 # Rodar testes
-npm test
+yarn test
 
 # Verificar tipos
 npx tsc --noEmit
 
 # Build de produção
-npm run build
+yarn build
 
 # Lint
-npm run lint
+yarn lint
 ```
 
 ## Estrutura do Código
@@ -99,8 +99,8 @@ refactor: extrai GameLayout para componente compartilhado
 
 ## Pull Requests
 
-1. Certifique-se que os testes passam: `npm test`
-2. Certifique-se que o build funciona: `npm run build`
+1. Certifique-se que os testes passam: `yarn test`
+2. Certifique-se que o build funciona: `yarn build`
 3. Descreva o que mudou e por quê
 4. Inclua screenshots se houver mudanças visuais
 5. Referencie issues relacionadas
