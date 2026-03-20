@@ -17,7 +17,7 @@ export default function Quiz({ onBack, wordPool, rounds, onComplete }: GameCompo
 
   const [pool] = useState(() => shuffle(wordPool ?? words).slice(0, effectiveRounds));
 
-  const { current, round, correct, errors, done, advance, addError } = useGameRounds<Word>({
+  const { current, round, correct, done, advance, addError } = useGameRounds<Word>({
     pool,
     totalRounds: effectiveRounds,
     onComplete,

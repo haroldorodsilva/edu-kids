@@ -213,9 +213,9 @@ describe('Property 11: Minimum lesson validation', () => {
  */
 
 describe('Property 12: Integridade das trilhas builtin', () => {
-  const wordIds = new Set(words.map((w) => w.id));
-  const storyIds = new Set(stories.map((s) => s.id));
-  const sentenceIds = new Set(sentences.map((s) => s.id));
+  const wordIds = new Set<string>(words.map((w) => w.id));
+  const storyIds = new Set<string>(stories.map((s) => s.id));
+  const sentenceIds = new Set<string>(sentences.map((s) => s.id));
   const matchGameIds = new Set(getMatchGames().map((g) => g.id));
 
   it('devem existir exatamente 3 trilhas builtin, uma para cada faixa etária', () => {

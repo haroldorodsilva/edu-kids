@@ -166,28 +166,29 @@ export default function TrackLessonRunner() {
       <ActivityProgress current={activityIdx} total={totalActivities} unitColor={unit.color} />
       <div style={{ paddingTop: 40 }}>
         {activity.gameType === 'syllable' && (
-          <Syllable onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
+          <Syllable key={activityIdx} onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
         )}
         {activity.gameType === 'quiz' && (
-          <Quiz onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
+          <Quiz key={activityIdx} onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
         )}
         {activity.gameType === 'fill' && (
-          <Fill onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
+          <Fill key={activityIdx} onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
         )}
         {activity.gameType === 'memory' && (
-          <Memory onBack={gameBack} wordPool={wordPool} onComplete={gameComplete} />
+          <Memory key={activityIdx} onBack={gameBack} wordPool={wordPool} onComplete={gameComplete} />
         )}
         {activity.gameType === 'write' && (
-          <Write onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
+          <Write key={activityIdx} onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
         )}
         {activity.gameType === 'firstletter' && (
-          <FirstLetter onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
+          <FirstLetter key={activityIdx} onBack={gameBack} wordPool={wordPool} rounds={activity.rounds} onComplete={gameComplete} />
         )}
         {activity.gameType === 'buildsentence' && (
-          <BuildSentence onBack={gameBack} sentencePool={sentencePool} rounds={activity.rounds} onComplete={gameComplete} />
+          <BuildSentence key={activityIdx} onBack={gameBack} sentencePool={sentencePool} rounds={activity.rounds} onComplete={gameComplete} />
         )}
         {activity.gameType === 'story' && activity.storyId && (
           <StoryPlayer
+            key={activityIdx}
             storyId={activity.storyId}
             mode={activity.storyMode || 'typing'}
             onBack={gameBack}
@@ -196,6 +197,7 @@ export default function TrackLessonRunner() {
         )}
         {activity.gameType === 'matchgame' && activity.matchGameId && (
           <MatchGame
+            key={activityIdx}
             gameId={activity.matchGameId}
             onBack={gameBack}
             onComplete={gameComplete}

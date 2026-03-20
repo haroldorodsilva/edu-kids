@@ -113,7 +113,7 @@ describe('Property 10: getTheme retorna tema válido para qualquer GameId', () =
   });
 
   it('getTheme returns the first theme as fallback for unknown ids', () => {
-    const validIds = new Set(GAME_THEMES.map((t) => t.id));
+    const validIds = new Set<string>(GAME_THEMES.map((t) => t.id));
 
     fc.assert(
       fc.property(

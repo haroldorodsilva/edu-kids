@@ -3,9 +3,11 @@ import { GAME_THEMES } from '../../shared/data/gameThemes';
 import { words } from '../../shared/data/words';
 import type { Word } from '../../shared/data/words';
 import ScreenHeader from '../../shared/components/layout/ScreenHeader';
+import { DIFFICULTY_LEVELS, type DifficultyLevel, getDifficulty } from '../../shared/config/difficultyLevels';
+import type { GameType } from '../../shared/progression/types';
 
 interface Props {
-  onSelect: (game: string, wordPool?: Word[]) => void;
+  onSelect: (game: string, wordPool?: Word[], rounds?: number) => void;
   onBack: () => void;
   onAdmin: () => void;
 }
@@ -27,9 +29,18 @@ const CATEGORY_FILTERS = [
 
 export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
   const [catFilter, setCatFilter] = useState('');
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
 
-  const filteredWords = catFilter ? words.filter(w => w.category === catFilter) : words;
-  const wordPool = catFilter ? ([...filteredWords] as Word[]) : undefined;
+  const diffConfig = getDifficulty(difficulty);
+  const filteredByCategory = catFilter ? words.filter(w => w.category === catFilter) : [...words];
+  const filteredWords = filteredByCategory.filter(w => diffConfig.wordDifficulties.includes(w.difficulty as 1 | 2 | 3));
+  const wordPool = filteredWords.length >= 4 ? filteredWords : filteredByCategory;
+
+  function handleSelect(gameId: string) {
+    const gameOverride = diffConfig.overrides[gameId as GameType];
+    const rounds = gameOverride?.rounds;
+    onSelect(gameId, wordPool.length < words.length ? wordPool : undefined, rounds);
+  }
 
   const availableCategories = CATEGORY_FILTERS.filter(cat =>
     !cat.id || words.filter(w => w.category === cat.id).length >= 4
@@ -38,13 +49,11 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
   const subtitle = catFilter
     ? `${filteredWords.length} palavra${filteredWords.length !== 1 ? 's' : ''} · ${
         availableCategories.find(c => c.id === catFilter)?.label ?? catFilter
-      }`
-    : 'Escolha um jogo e divirta-se!';
+      } · ${diffConfig.label}`
+    : `${diffConfig.label} · ${filteredWords.length} palavras`;
 
   return (
     <div className="ds-screen" style={{ overflowY: 'auto' }}>
-
-      {/* ── Header via ScreenHeader ────────────────────────────── */}
       <ScreenHeader
         title="Jogar Livre"
         emoji="🎮"
@@ -52,126 +61,108 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
         subtitle={subtitle}
         actions={
           <button
-            onClick={onAdmin}
             className="ds-btn-icon"
+            onClick={onAdmin}
+            aria-label="Painel Admin"
             style={{
+              minWidth: 44,
+              minHeight: 44,
               background: 'rgba(255,255,255,.2)',
               color: 'var(--color-text-inverse)',
+              fontSize: 'var(--font-size-lg)',
             }}
-            aria-label="Admin"
           >
             ⚙️
           </button>
         }
       />
 
-      {/* ── Category pills ──────────────────────────────────────── */}
-      <div style={{
-        padding: 'var(--spacing-md) var(--spacing-lg) 0',
-        position: 'sticky', top: 76, zIndex: 9,
-        background: 'var(--color-bg)',
-      }}>
-        <div className="scrollbar-hide" style={{
-          display: 'flex', gap: 'var(--spacing-sm)', overflowX: 'auto',
-          paddingBottom: 'var(--spacing-sm)',
-        }}>
-          {availableCategories.map(cat => {
-            const active = catFilter === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setCatFilter(cat.id)}
-                className={`ds-btn ${active ? '' : 'ds-btn-ghost'}`}
-                style={{
-                  flexShrink: 0,
-                  padding: 'var(--spacing-sm) var(--spacing-md)',
-                  fontSize: 'var(--font-size-sm)',
-                  borderRadius: 'var(--radius-full)',
-                  background: active
-                    ? 'var(--gradient-primary)'
-                    : 'var(--color-surface)',
-                  color: active ? 'var(--color-text-inverse)' : 'var(--color-text-2)',
-                  boxShadow: active
-                    ? '0 3px 12px rgba(108,92,231,.35)'
-                    : 'var(--shadow-sm)',
-                  transition: `all var(--transition-fast)`,
-                }}
-              >
-                <span style={{ fontSize: 'var(--font-size-md)' }}>{cat.emoji}</span>
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
+      {/* Category pills */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 'var(--spacing-sm)',
+          padding: 'var(--spacing-md) var(--spacing-lg)',
+          overflowX: 'auto',
+          flexWrap: 'nowrap',
+        }}
+      >
+        {availableCategories.map(cat => (
+          <button
+            key={cat.id || '__all'}
+            onClick={() => setCatFilter(cat.id)}
+            className={catFilter === cat.id ? 'ds-btn ds-btn--sm' : 'ds-btn ds-btn--sm ds-btn--outline'}
+            style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+          >
+            {cat.emoji} {cat.label}
+          </button>
+        ))}
       </div>
 
-      {/* ── Game grid ───────────────────────────────────────────── */}
-      <div style={{ padding: 'var(--spacing-sm) var(--spacing-md) 40px' }}>
-        <div style={{
+      {/* Difficulty pills */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 'var(--spacing-sm)',
+          padding: '0 var(--spacing-lg) var(--spacing-md)',
+          justifyContent: 'center',
+        }}
+      >
+        {DIFFICULTY_LEVELS.map(d => (
+          <button
+            key={d.id}
+            onClick={() => setDifficulty(d.id)}
+            className={difficulty === d.id ? 'ds-btn ds-btn--sm' : 'ds-btn ds-btn--sm ds-btn--outline'}
+            style={{
+              borderColor: d.color,
+              ...(difficulty === d.id ? { background: d.color, color: '#fff' } : { color: d.color }),
+            }}
+          >
+            {d.emoji} {d.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Game grid */}
+      <div
+        style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
           gap: 'var(--spacing-md)',
-        }}>
-          {GAME_THEMES.map((game, i) => (
-            <button
-              key={game.id}
-              onClick={() => onSelect(game.id, wordPool)}
-              className="ds-card animate-pop-up"
+          padding: '0 var(--spacing-lg) var(--spacing-xl)',
+        }}
+      >
+        {GAME_THEMES.map(game => (
+          <button
+            key={game.id}
+            onClick={() => handleSelect(game.id)}
+            className="ds-card"
+            style={{
+              background: game.gradient,
+              border: 'none',
+              cursor: 'pointer',
+              padding: 'var(--spacing-lg)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 'var(--spacing-sm)',
+              borderRadius: 'var(--radius-lg)',
+              transition: 'transform .15s',
+            }}
+          >
+            <span style={{ fontSize: '2.5rem' }}>{game.icon}</span>
+            <span
               style={{
-                animationDelay: `${i * 40}ms`,
-                background: game.gradient,
-                borderColor: `${game.color}40`,
-                padding: 'var(--spacing-lg) var(--spacing-md) var(--spacing-lg)',
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                gap: 'var(--spacing-sm)',
-                cursor: 'pointer',
-                transition: `transform var(--transition-fast), box-shadow var(--transition-fast)`,
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-4px) scale(1.02)';
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 28px ${game.color}35`;
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLButtonElement).style.transform = '';
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = '';
-              }}
-              aria-label={game.label}
-            >
-              {/* Decorative circle behind icon */}
-              <div style={{
-                position: 'absolute', top: -20, right: -20,
-                width: 80, height: 80, borderRadius: 'var(--radius-full)',
-                background: `${game.color}12`,
-              }} />
-
-              {/* Icon */}
-              <div style={{
-                width: 72, height: 72,
-                borderRadius: 'var(--radius-lg)',
-                background: `linear-gradient(135deg, ${game.color}20, ${game.color}40)`,
-                border: `2.5px solid ${game.color}30`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 38,
-                position: 'relative',
-              }}>
-                {game.icon}
-              </div>
-
-              {/* Label */}
-              <span style={{
                 fontSize: 'var(--font-size-sm)',
-                fontWeight: 800,
+                fontWeight: 700,
                 color: game.textColor,
-                textAlign: 'center',
-                lineHeight: 1.2,
-              }}>
-                {game.label}
-              </span>
-            </button>
-          ))}
-        </div>
+                fontFamily: 'var(--font-family)',
+              }}
+            >
+              {game.label}
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   );

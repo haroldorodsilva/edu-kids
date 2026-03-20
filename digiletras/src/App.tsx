@@ -23,7 +23,7 @@ import type { Word } from './shared/data/words';
 import type { GameComponentProps } from './shared/types';
 
 // ── Route state type for free-play games ────────────────────────────────────
-interface GameState { wordPool?: Word[] }
+interface GameState { wordPool?: Word[]; rounds?: number }
 
 // ── Generic GameRoute config & component ─────────────────────────────────────
 
@@ -101,7 +101,7 @@ function FreePlayRoute() {
   const nav = useNavigate();
   return (
     <FreePlayScreen
-      onSelect={(game, wordPool) => nav(`/freeplay/${game}`, { state: { wordPool } })}
+      onSelect={(game, wordPool, rounds) => nav(`/freeplay/${game}`, { state: { wordPool, rounds } })}
       onBack={() => nav('/')}
       onAdmin={() => nav('/admin')}
     />

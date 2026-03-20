@@ -19,7 +19,7 @@ export default function FirstLetter({ onBack, wordPool, rounds, onComplete }: Ga
 
   const [pool] = useState(() => shuffle(wordPool ?? words).slice(0, effectiveRounds));
 
-  const { current, round, correct, errors, done, advance } = useGameRounds<Word>({
+  const { current, round, correct, done, advance } = useGameRounds<Word>({
     pool,
     totalRounds: effectiveRounds,
     onComplete,

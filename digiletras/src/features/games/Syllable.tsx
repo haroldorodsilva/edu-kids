@@ -19,7 +19,7 @@ export default function Syllable({ onBack, wordPool, rounds, onComplete }: GameC
     shuffle((wordPool ?? words).filter(w => w.syllables.length >= 2)).slice(0, effectiveRounds)
   );
 
-  const { current, round, correct, errors, done, advance, addError } = useGameRounds<Word>({
+  const { current, round, correct, done, advance, addError } = useGameRounds<Word>({
     pool,
     totalRounds: effectiveRounds,
     onComplete,

@@ -26,58 +26,58 @@ export const BUILTIN_TRACKS: Track[] = [
     createdAt: NOW,
     updatedAt: NOW,
     units: [
-      // ── Unidade 1: Primeiras Letras (quiz + memória com A–E) ──────────
+      // ── Unidade 1: Primeiras Letras (quiz + memória com palavras concretas) ──
       {
         id: 'u-3-4-1',
         title: 'Primeiras Letras',
-        subtitle: 'Reconhecendo as letras A até E',
+        subtitle: 'Reconhecendo palavras e figuras',
         emoji: '🔤',
         color: '#22c55e',
         bg: '#f0fdf4',
         lessons: [
           {
             id: 'l-3-4-1-1',
-            title: 'Letra A',
-            emoji: '🅰️',
+            title: 'Animais',
+            emoji: '🐱',
             activities: [
-              { id: 'a-3-4-1-1-1', gameType: 'quiz', wordIds: ['w-20', 'w-72', 'w-83'], rounds: 3 },
-              { id: 'a-3-4-1-1-2', gameType: 'memory', wordIds: ['w-20', 'w-72', 'w-83', 'w-1'], rounds: 4 },
+              { id: 'a-3-4-1-1-1', gameType: 'quiz', wordIds: ['w-2', 'w-4', 'w-8', 'w-12'], rounds: 4 },
+              { id: 'a-3-4-1-1-2', gameType: 'memory', wordIds: ['w-2', 'w-4', 'w-8', 'w-12'], rounds: 4 },
             ],
           },
           {
             id: 'l-3-4-1-2',
-            title: 'Letra B',
-            emoji: '🅱️',
+            title: 'Coisas de Casa',
+            emoji: '🏠',
             activities: [
-              { id: 'a-3-4-1-2-1', gameType: 'quiz', wordIds: ['w-1', 'w-15', 'w-31', 'w-73'], rounds: 4 },
-              { id: 'a-3-4-1-2-2', gameType: 'memory', wordIds: ['w-1', 'w-15', 'w-31', 'w-79'], rounds: 4 },
+              { id: 'a-3-4-1-2-1', gameType: 'quiz', wordIds: ['w-1', 'w-3', 'w-25', 'w-10'], rounds: 4 },
+              { id: 'a-3-4-1-2-2', gameType: 'memory', wordIds: ['w-1', 'w-3', 'w-25', 'w-10'], rounds: 4 },
             ],
           },
           {
             id: 'l-3-4-1-3',
-            title: 'Letra C',
-            emoji: '©️',
+            title: 'Comidas',
+            emoji: '🍎',
             activities: [
-              { id: 'a-3-4-1-3-1', gameType: 'quiz', wordIds: ['w-3', 'w-25', 'w-26', 'w-91'], rounds: 4 },
-              { id: 'a-3-4-1-3-2', gameType: 'memory', wordIds: ['w-3', 'w-25', 'w-26', 'w-92'], rounds: 4 },
+              { id: 'a-3-4-1-3-1', gameType: 'quiz', wordIds: ['w-15', 'w-16', 'w-17', 'w-18'], rounds: 4 },
+              { id: 'a-3-4-1-3-2', gameType: 'memory', wordIds: ['w-15', 'w-16', 'w-17', 'w-18'], rounds: 4 },
             ],
           },
           {
             id: 'l-3-4-1-4',
-            title: 'Letra D',
-            emoji: '🎲',
+            title: 'Natureza',
+            emoji: '☀️',
             activities: [
-              { id: 'a-3-4-1-4-1', gameType: 'quiz', wordIds: ['w-11', 'w-30', 'w-78', 'w-82'], rounds: 4 },
-              { id: 'a-3-4-1-4-2', gameType: 'memory', wordIds: ['w-11', 'w-30', 'w-78', 'w-82'], rounds: 4 },
+              { id: 'a-3-4-1-4-1', gameType: 'quiz', wordIds: ['w-5', 'w-6', 'w-23', 'w-32'], rounds: 4 },
+              { id: 'a-3-4-1-4-2', gameType: 'memory', wordIds: ['w-5', 'w-6', 'w-23', 'w-32'], rounds: 4 },
             ],
           },
           {
             id: 'l-3-4-1-5',
-            title: 'Letras A–E',
+            title: 'Revisão',
             emoji: '⭐',
             activities: [
-              { id: 'a-3-4-1-5-1', gameType: 'quiz', wordIds: ['w-20', 'w-1', 'w-3', 'w-11', 'w-43'], rounds: 5 },
-              { id: 'a-3-4-1-5-2', gameType: 'memory', wordIds: ['w-20', 'w-1', 'w-3', 'w-11', 'w-43'], rounds: 5 },
+              { id: 'a-3-4-1-5-1', gameType: 'quiz', wordIds: ['w-2', 'w-1', 'w-15', 'w-6', 'w-7'], rounds: 5 },
+              { id: 'a-3-4-1-5-2', gameType: 'memory', wordIds: ['w-4', 'w-3', 'w-16', 'w-5', 'w-8'], rounds: 5 },
             ],
           },
         ],
@@ -109,11 +109,11 @@ export const BUILTIN_TRACKS: Track[] = [
           },
           {
             id: 'l-3-4-2-3',
-            title: 'Qual a Cor?',
-            emoji: '🌈',
+            title: 'Mais Animais',
+            emoji: '🐶',
             activities: [
-              { id: 'a-3-4-2-3-1', gameType: 'quiz', wordIds: ['w-83', 'w-84', 'w-85', 'w-86'], rounds: 4 },
-              { id: 'a-3-4-2-3-2', gameType: 'memory', wordIds: ['w-83', 'w-84', 'w-85', 'w-86', 'w-87', 'w-88'], rounds: 4 },
+              { id: 'a-3-4-2-3-1', gameType: 'quiz', wordIds: ['w-22', 'w-14', 'w-73', 'w-35'], rounds: 4 },
+              { id: 'a-3-4-2-3-2', gameType: 'memory', wordIds: ['w-22', 'w-14', 'w-73', 'w-35', 'w-9'], rounds: 4 },
             ],
           },
         ],

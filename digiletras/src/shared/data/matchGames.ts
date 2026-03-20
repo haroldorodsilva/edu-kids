@@ -1,4 +1,5 @@
 import { words } from './words';
+import type { Word } from './words';
 import { shuffle, pickRandom } from '../utils/helpers';
 
 export type MatchMode = 'connect' | 'type' | 'count' | 'alphabet';
@@ -229,7 +230,7 @@ function generateCounting(): MatchGame {
 
 function generateAlphabet(): MatchGame {
   // Escolhe uma letra aleatória que tenha pelo menos 3 palavras
-  const letterMap = new Map<string, typeof words>();
+  const letterMap = new Map<string, Word[]>();
   for (const w of words) {
     const letter = w.word[0].toUpperCase();
     if (!letterMap.has(letter)) letterMap.set(letter, []);

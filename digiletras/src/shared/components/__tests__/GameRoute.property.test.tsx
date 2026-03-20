@@ -8,12 +8,13 @@ import { render, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { GameRoute } from '../../../App';
 import type { GameRouteConfig } from '../../../App';
+import type { GameComponentProps } from '../../types';
 
 /**
  * Mock game component that renders its received props as data attributes
  * so we can inspect what GameRoute actually passes.
  */
-function MockGame(props: Record<string, unknown>) {
+function MockGame(props: GameComponentProps) {
   return (
     <div
       data-testid="mock-game"

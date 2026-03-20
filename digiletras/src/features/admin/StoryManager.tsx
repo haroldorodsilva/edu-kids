@@ -143,7 +143,7 @@ export function CreateStoryForm({ onCancel, onSave, prefill }: CreateProps) {
       title: title.trim(),
       emoji: emoji.trim() || '📖',
       difficulty,
-      theme: theme.trim() || undefined,
+      theme: theme.trim() || '',
       sentences: valid,
     };
     onSave(story);

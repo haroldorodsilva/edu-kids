@@ -11,7 +11,7 @@ type Props = Omit<GameComponentProps, 'rounds'>;
 
 interface Card { id: string; wordId: string; word: string; emoji: string; }
 
-function makeCards(pool: Word[], numPairs: number): Card[] {
+function makeCards(pool: readonly Word[], numPairs: number): Card[] {
   const selected = shuffle(pool).slice(0, numPairs);
   const cards: Card[] = [];
   selected.forEach(w => {
