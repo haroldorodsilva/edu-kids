@@ -22,6 +22,10 @@ export const GAME_THEMES = [
   { id: 'buildsentence', icon: 'FileText',       label: 'Montar Frase',   color: '#00695C', bg: '#E0F2F1', gradient: 'linear-gradient(135deg, #E0F2F1, #80CBC4)', textColor: '#00695C' },
   { id: 'storypicker',   icon: 'BookOpen',       label: 'Histórias',      color: '#1565C0', bg: '#E3F2FD', gradient: 'linear-gradient(135deg, #E3F2FD, #90CAF9)', textColor: '#1565C0' },
   { id: 'matchgame',     icon: 'Link',           label: 'Ligar / Digitar', color: '#6A1B9A', bg: '#F3E5F5', gradient: 'linear-gradient(135deg, #F3E5F5, #CE93D8)', textColor: '#6A1B9A' },
+  // Novos jogos
+  { id: 'vowelgame',     icon: 'Star',           label: 'Vogais',         color: '#F57F17', bg: '#FFF9C4', gradient: 'linear-gradient(135deg, #FFF9C4, #FFF176)', textColor: '#E65100' },
+  { id: 'silfamilia',    icon: 'Grid3x3',        label: 'Família Silábica', color: '#0288D1', bg: '#E1F5FE', gradient: 'linear-gradient(135deg, #E1F5FE, #81D4FA)', textColor: '#01579B' },
+  { id: 'ditado',        icon: 'Mic',            label: 'Ditado',         color: '#388E3C', bg: '#E8F5E9', gradient: 'linear-gradient(135deg, #E8F5E9, #A5D6A7)', textColor: '#1B5E20' },
 ] as const satisfies readonly GameTheme[];
 
 /** Union type of all valid game IDs, derived from GAME_THEMES */

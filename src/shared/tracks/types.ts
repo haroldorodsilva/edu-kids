@@ -1,10 +1,11 @@
 /** Faixas etárias suportadas */
-export type AgeGroup = '3-4' | '5-6' | '7-8';
+export type AgeGroup = '3-4' | '5-6' | '7-8' | '9-10';
 
 /** Tipos de jogo disponíveis para atividades de trilha */
 export type TrackGameType =
   | 'syllable' | 'quiz' | 'fill' | 'memory' | 'write'
-  | 'firstletter' | 'buildsentence' | 'story' | 'matchgame';
+  | 'firstletter' | 'buildsentence' | 'story' | 'matchgame'
+  | 'vowelgame' | 'silfamilia' | 'ditado';
 
 /** Configuração de uma atividade dentro de uma lição */
 export interface TrackActivity {

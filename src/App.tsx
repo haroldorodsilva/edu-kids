@@ -9,6 +9,9 @@ import Write from './features/games/Write';
 import FirstLetter from './features/games/FirstLetter';
 import BuildSentence from './features/games/BuildSentence';
 import MatchGame from './features/games/MatchGame';
+import VowelGame from './features/games/VowelGame';
+import SyllableFamily from './features/games/SyllableFamily';
+import DictationGame from './features/games/DictationGame';
 import StoryPicker from './features/stories/StoryPicker';
 import StoryPlayer from './features/stories/StoryPlayer';
 import AdminPanel from './features/admin/AdminPanel';
@@ -38,7 +41,7 @@ export interface GameRouteConfig {
   noWordPool?: boolean;
 }
 
-/** All 9 free-play game routes in a single config array */
+/** All free-play game routes in a single config array */
 export const GAME_ROUTES: GameRouteConfig[] = [
   { id: 'syllable',      component: Syllable },
   { id: 'quiz',          component: Quiz },
@@ -48,6 +51,10 @@ export const GAME_ROUTES: GameRouteConfig[] = [
   { id: 'firstletter',   component: FirstLetter },
   { id: 'buildsentence', component: BuildSentence, noWordPool: true },
   { id: 'matchgame',     component: MatchGame,     noWordPool: true },
+  // Novos jogos
+  { id: 'vowelgame',     component: VowelGame },
+  { id: 'silfamilia',    component: SyllableFamily, noWordPool: true },
+  { id: 'ditado',        component: DictationGame },
 ];
 
 /** Generic component that connects React Router → any Game Component via config */

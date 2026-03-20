@@ -16,6 +16,9 @@ import FirstLetter from '../games/FirstLetter';
 import BuildSentence from '../games/BuildSentence';
 import StoryPlayer from '../stories/StoryPlayer';
 import MatchGame from '../games/MatchGame';
+import VowelGame from '../games/VowelGame';
+import SyllableFamily from '../games/SyllableFamily';
+import DictationGame from '../games/DictationGame';
 
 function calcStars(totalErrors: number, totalActivities: number): number {
   const errorRate = totalErrors / Math.max(totalActivities * 3, 1);
@@ -203,6 +206,15 @@ export default function TrackLessonRunner() {
             onBack={gameBack}
             onComplete={gameComplete}
           />
+        )}
+        {activity.gameType === 'vowelgame' && (
+          <VowelGame key={activityIdx} onBack={gameBack} wordPool={wordPool.length > 0 ? wordPool : undefined} rounds={activity.rounds} onComplete={gameComplete} />
+        )}
+        {activity.gameType === 'silfamilia' && (
+          <SyllableFamily key={activityIdx} onBack={gameBack} rounds={activity.rounds} onComplete={gameComplete} />
+        )}
+        {activity.gameType === 'ditado' && (
+          <DictationGame key={activityIdx} onBack={gameBack} wordPool={wordPool.length > 0 ? wordPool : undefined} rounds={activity.rounds} onComplete={gameComplete} />
         )}
       </div>
     </div>
