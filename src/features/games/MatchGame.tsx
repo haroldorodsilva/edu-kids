@@ -338,18 +338,25 @@ function ConnectMode({ game, onBack, onComplete }: { game: MatchGame; onBack: ()
 function TypeMode({ game, onBack, onComplete }: { game: MatchGame; onBack: () => void; onComplete?: (errors: number) => void }) {
   const [answers, setAnswers] = useState<Map<string, string>>(new Map());
   const [states,  setStates]  = useState<Map<string, 'idle' | 'correct' | 'wrong'>>(new Map());
+  const statesRef = useRef<Map<string, 'idle' | 'correct' | 'wrong'>>(new Map());
   const [errors,  setErrors]  = useState(0);
   const [done,    setDone]    = useState(false);
 
-  function handleCheck(pair: MatchPair) {
-    const ans = normalizeAnswer(answers.get(pair.id) ?? '');
+  // Keep statesRef in sync so handleCheckWithValue reads fresh data even inside callbacks
+  useEffect(() => { statesRef.current = states; }, [states]);
+
+  // Validates using value passed directly — avoids stale closure on answers state
+  function handleCheckWithValue(pair: MatchPair, value: string) {
+    const ans = normalizeAnswer(value);
     if (!ans) return;
-    const ok  = normalizeAnswer(pair.right) === ans;
+    // Already correct — don't re-validate
+    if (statesRef.current.get(pair.id) === 'correct') return;
+    const ok = normalizeAnswer(pair.right) === ans;
     setStates(prev => new Map(prev).set(pair.id, ok ? 'correct' : 'wrong'));
     if (ok) {
       beep('ok');
       const allCorrect = game.pairs.every(p =>
-        p.id === pair.id ? true : states.get(p.id) === 'correct'
+        p.id === pair.id ? true : statesRef.current.get(p.id) === 'correct'
       );
       if (allCorrect) setTimeout(() => setDone(true), 500);
     } else {
@@ -366,7 +373,8 @@ function TypeMode({ game, onBack, onComplete }: { game: MatchGame; onBack: () =>
     setAnswers(prev => new Map(prev).set(pair.id, value));
     const expectedLen = pair.right.trim().length;
     if (value.trim().length >= expectedLen) {
-      setTimeout(() => handleCheck({ ...pair }), 150);
+      // Pass value directly to avoid reading stale answers state in callback
+      setTimeout(() => handleCheckWithValue(pair, value), 100);
     }
   }
 
@@ -440,11 +448,16 @@ function TypeMode({ game, onBack, onComplete }: { game: MatchGame; onBack: () =>
                   <input
                     value={val}
                     onChange={e => handleInputChange(pair, e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && val.trim() && handleCheck(pair)}
+                    onKeyDown={e => e.key === 'Enter' && val.trim() && handleCheckWithValue(pair, val)}
+                    onBlur={() => val.trim() && handleCheckWithValue(pair, val)}
                     placeholder="?"
                     autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    inputMode="text"
                     aria-label={`Resposta para ${label || icon}`}
-                    maxLength={pair.right.trim().length}
+                    maxLength={pair.right.trim().length + 2}
                     className="w-full text-center font-extrabold text-lg lowercase"
                     style={{
                       padding: 'var(--spacing-sm)',
