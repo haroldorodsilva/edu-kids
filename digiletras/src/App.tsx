@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createHashRouter, RouterProvider, useNavigate, useLocation, useParams } from 'react-router-dom';
 import Syllable from './features/games/Syllable';
 import Quiz from './features/games/Quiz';

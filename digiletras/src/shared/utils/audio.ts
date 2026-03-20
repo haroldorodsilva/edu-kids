@@ -12,7 +12,7 @@ function getCtx(): AudioContext | null {
       _ctx.resume();
     }
     return _ctx;
-  } catch (_) {
+  } catch {
     return null;
   }
 }
@@ -34,7 +34,7 @@ export function beep(type: 'ok' | 'no' | 'yay') {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.12);
-  } catch (_) {}
+  } catch { /* ignore */ }
 }
 
 export function speak(text: string) {
@@ -45,5 +45,5 @@ export function speak(text: string) {
     u.rate = 0.75;
     u.pitch = 1.1;
     window.speechSynthesis.speak(u);
-  } catch (_) {}
+  } catch { /* ignore */ }
 }

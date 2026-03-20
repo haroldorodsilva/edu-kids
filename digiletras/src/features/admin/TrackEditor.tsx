@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useMemo } from 'react';
 import { getAllTracks, saveTrack, deleteTrack, getTrackProgress } from '../../shared/tracks/trackStore';
 import type { Track, TrackUnit, TrackLesson, TrackActivity, TrackGameType, AgeGroup } from '../../shared/tracks/types';

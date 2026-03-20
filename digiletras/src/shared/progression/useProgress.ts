@@ -7,12 +7,12 @@ function load(): AppProgress {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (_) {}
+  } catch { /* ignore */ }
   return { completedLessons: {}, totalXP: 0, lastPlayedAt: new Date().toISOString() };
 }
 
 function save(p: AppProgress) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch (_) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch { /* ignore */ }
 }
 
 export function useProgress() {

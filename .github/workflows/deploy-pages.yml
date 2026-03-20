@@ -31,7 +31,7 @@ jobs:
         working-directory: digiletras
 
       - name: Build app
-        run: yarn build
+        run: VITE_BASE=/edu-kids/ yarn build
         working-directory: digiletras
 
       - name: Copy landing page

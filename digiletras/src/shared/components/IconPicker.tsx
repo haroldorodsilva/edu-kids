@@ -104,7 +104,7 @@ export default function IconPicker({ value, mode = 'emoji', onSelect, onClose }:
   const [search, setSearch]     = useState('');
   const [category, setCategory] = useState('');
 
-  const allLucideIcons = useMemo(buildIconList, []);
+  const allLucideIcons = useMemo(() => buildIconList(), []);
 
   const filteredLucide = useMemo(() => {
     let list = allLucideIcons;

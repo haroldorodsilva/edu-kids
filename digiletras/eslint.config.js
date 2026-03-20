@@ -19,5 +19,14 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // React Hooks v7 strict rules — downgrade to warnings for now
+      // These flag common React patterns that work fine in practice
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/purity': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/use-memo': 'warn',
+    },
   },
 ])

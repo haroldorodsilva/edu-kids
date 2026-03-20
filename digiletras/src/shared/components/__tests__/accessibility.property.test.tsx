@@ -92,7 +92,7 @@ describe('Property 8: Elementos interativos possuem atributos de acessibilidade'
     fc.assert(
       fc.property(
         fc.constantFrom(...MOCK_WORDS),
-        (_word) => {
+        () => {
           cleanup();
 
           const { container, unmount } = render(
@@ -129,7 +129,7 @@ describe('Property 8: Elementos interativos possuem atributos de acessibilidade'
     fc.assert(
       fc.property(
         fc.constantFrom(...MOCK_WORDS),
-        (_word) => {
+        () => {
           cleanup();
 
           const { container, unmount } = render(
