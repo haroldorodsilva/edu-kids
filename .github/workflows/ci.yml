@@ -16,24 +16,18 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-          cache-dependency-path: digiletras/yarn.lock
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-        working-directory: digiletras
 
       - name: Type check
         run: npx tsc --noEmit
-        working-directory: digiletras
 
       - name: Lint
         run: yarn lint
-        working-directory: digiletras
 
       - name: Tests
         run: yarn test
-        working-directory: digiletras
 
       - name: Build
         run: yarn build
-        working-directory: digiletras

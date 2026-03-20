@@ -24,20 +24,12 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-          cache-dependency-path: digiletras/yarn.lock
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-        working-directory: digiletras
 
       - name: Build app
         run: VITE_BASE=/edu-kids/ yarn build
-        working-directory: digiletras
-
-      - name: Copy landing page
-        run: |
-          cp docs/index.html digiletras/dist/landing.html
-          cp docs/style.css digiletras/dist/landing.css
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -45,7 +37,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: digiletras/dist
+          path: dist
 
   deploy:
     environment:

@@ -1,11 +1,6 @@
 {
-  "buildCommand": "cd digiletras && npm run build",
-  "outputDirectory": "digiletras/dist",
-  "installCommand": "cd digiletras && yarn install",
-  "framework": null,
-  "functions": {
-    "api/*.ts": {
-      "runtime": "@vercel/edge"
-    }
-  }
+  "buildCommand": "yarn build",
+  "outputDirectory": "dist",
+  "installCommand": "yarn install",
+  "framework": null
 }
