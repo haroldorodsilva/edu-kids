@@ -31,8 +31,10 @@ export function selectNextGame(
     return availableTypes[0];
   }
 
-  // Considerar apenas os últimos maxHistory jogos
-  const recent = recentGames.slice(0, maxHistory);
+  // Use the larger of maxHistory and availableTypes.length so every type
+  // can be tracked before the window resets, guaranteeing full coverage.
+  const effectiveHistory = Math.max(maxHistory, availableTypes.length);
+  const recent = recentGames.slice(0, effectiveHistory);
 
   // Encontrar tipos que NÃO foram jogados recentemente
   const recentSet = new Set(recent);
