@@ -8,7 +8,7 @@ import ScreenHeader from '../../shared/components/layout/ScreenHeader';
 import LucideIcon from '../../shared/components/ui/LucideIcon';
 import DoneCard from '../../shared/components/feedback/DoneCard';
 import type { GameComponentProps } from '../../shared/types';
-import { WORD_SEARCH_PUZZLES } from './wordSearchPuzzles';
+import { getAllPuzzles } from '../../shared/data/customWordSearchPuzzles';
 import type { WordSearchPuzzle, PuzzleWord } from './wordSearchPuzzles';
 
 type Props = Omit<GameComponentProps, 'rounds'>;
@@ -144,6 +144,7 @@ interface PickerProps {
 }
 
 function PuzzlePicker({ onPick, theme, onBack }: PickerProps) {
+  const allPuzzles = getAllPuzzles();
   return (
     <div className="ds-screen" style={{ overflowY: 'auto' }}>
       <ScreenHeader
@@ -182,7 +183,7 @@ function PuzzlePicker({ onPick, theme, onBack }: PickerProps) {
         </button>
 
         {/* Preset puzzles */}
-        {WORD_SEARCH_PUZZLES.map(puzzle => (
+        {allPuzzles.map(puzzle => (
           <button
             key={puzzle.id}
             onClick={() => onPick(puzzle)}

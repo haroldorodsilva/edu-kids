@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import {
-  Settings, BarChart3, BookOpen, Library, Link, Route,
+  Settings, BarChart3, BookOpen, Library, Link, Route, Search,
 } from 'lucide-react';
 import Dashboard from './Dashboard';
 import StoryManager from './StoryManager';
 import WordBank from './WordBank';
 import MatchGameEditor from './MatchGameEditor';
 import TrackEditor from './TrackEditor';
+import WordSearchEditor from './WordSearchEditor';
 import ScreenHeader from '../../shared/components/layout/ScreenHeader';
 
 interface Props { onBack: () => void; }
 
-type Tab = 'dashboard' | 'stories' | 'words' | 'matchgame' | 'tracks';
+type Tab = 'dashboard' | 'stories' | 'words' | 'matchgame' | 'tracks' | 'wordsearch';
 
 const TABS: { id: Tab; label: string; Icon: typeof BarChart3; color: string }[] = [
   { id: 'dashboard',   label: 'Dashboard', Icon: BarChart3, color: '#6C5CE7' },
@@ -19,6 +20,7 @@ const TABS: { id: Tab; label: string; Icon: typeof BarChart3; color: string }[] 
   { id: 'words',       label: 'Palavras',  Icon: Library,   color: '#0984E3' },
   { id: 'matchgame',   label: 'Ligar',     Icon: Link,      color: '#6A1B9A' },
   { id: 'tracks',      label: 'Trilhas',   Icon: Route,     color: '#00897B' },
+  { id: 'wordsearch',  label: 'Caça Pal.', Icon: Search,    color: '#C62828' },
 ];
 
 export default function AdminPanel({ onBack }: Props) {
@@ -87,6 +89,7 @@ export default function AdminPanel({ onBack }: Props) {
         {tab === 'words'       && <WordBank />}
         {tab === 'matchgame'   && <MatchGameEditor />}
         {tab === 'tracks'      && <TrackEditor />}
+        {tab === 'wordsearch'  && <WordSearchEditor />}
       </div>
     </div>
   );
