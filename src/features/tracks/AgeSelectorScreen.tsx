@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { CaseSensitive } from 'lucide-react';
+import { CaseSensitive, LogIn } from 'lucide-react';
 import { useSessionStore } from '../../shared/stores/sessionStore';
+import { useAuthStore } from '../../shared/stores/authStore';
 import type { AgeGroup } from '../../shared/tracks/types';
 
 const AGE_CARDS: { age: AgeGroup; emoji: string; color: string; bg: string; label: string; description: string }[] = [
@@ -13,6 +14,7 @@ const AGE_CARDS: { age: AgeGroup; emoji: string; color: string; bg: string; labe
 export default function AgeSelectorScreen() {
   const navigate = useNavigate();
   const { selectedAge, setSelectedAge } = useSessionStore();
+  const user = useAuthStore((s) => s.user);
 
   // No auto-redirect — always show age selector on root.
   // User picks age each session (or navigates directly via /tracks/:age).
@@ -45,6 +47,24 @@ export default function AgeSelectorScreen() {
             Silabrinca
           </div>
         </div>
+        <button
+          onClick={() => navigate(user ? (user.role === 'admin' ? '/admin' : user.role === 'teacher' ? '/teacher' : '/parent') : '/login')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '6px 14px',
+            borderRadius: 20,
+            border: '1.5px solid rgba(255,255,255,0.4)',
+            background: 'rgba(255,255,255,0.12)',
+            color: '#fff',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            backdropFilter: 'blur(6px)',
+          }}
+        >
+          <LogIn size={14} />
+          {user ? user.displayName : 'Entrar'}
+        </button>
       </header>
 
       {/* Cards area */}

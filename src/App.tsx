@@ -26,6 +26,8 @@ import TrackLessonRunner from './features/tracks/TrackLessonRunner';
 import TrackEditor from './features/admin/TrackEditor';
 import ParentDashboard from './features/parent/ParentDashboard';
 import TeacherDashboard from './features/teacher/TeacherDashboard';
+import LoginScreen from './features/auth/LoginScreen';
+import ProtectedRoute from './shared/components/auth/ProtectedRoute';
 import ScreenHeader from './shared/components/layout/ScreenHeader';
 import type { Word } from './shared/data/words';
 import type { GameComponentProps } from './shared/types';
@@ -173,9 +175,31 @@ const router = createHashRouter([
   { path: '/freeplay/storypicker',       element: <StoryPickerRoute /> },
   { path: '/stories/:storyId/:mode',     element: <StoryPlayerRoute /> },
   { path: '/lesson/:unitId/:lessonId',   element: <LessonRoute /> },
-  { path: '/admin',                      element: <AdminRoute /> },
-  { path: '/parent',                     element: <ParentDashboard /> },
-  { path: '/teacher',                    element: <TeacherDashboard /> },
+  { path: '/login',                      element: <LoginScreen /> },
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute allowedRoles={['admin']}>
+        <AdminRoute />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/parent',
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'parent']}>
+        <ParentDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/teacher',
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+        <TeacherDashboard />
+      </ProtectedRoute>
+    ),
+  },
 ]);
 
 export default function App() {

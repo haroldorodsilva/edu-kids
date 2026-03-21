@@ -17,8 +17,9 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Users, BookOpen, ClipboardList } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Users, BookOpen, ClipboardList, LogOut } from 'lucide-react';
 import { useAllTracks } from '../../shared/queries/tracks.queries';
+import { useAuthStore } from '../../shared/stores/authStore';
 
 function StatCard({ icon, label, value, color }: {
   icon: React.ReactNode; label: string; value: number | string; color: string;
@@ -37,7 +38,13 @@ function StatCard({ icon, label, value, color }: {
 
 export default function TeacherDashboard() {
   const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
   const { data: tracks = [] } = useAllTracks();
+
+  function handleLogout() {
+    logout();
+    navigate('/login', { replace: true });
+  }
 
   const tracksByAge = {
     '3-4': tracks.filter(t => t.ageGroup === '3-4').length,
@@ -74,17 +81,32 @@ export default function TeacherDashboard() {
           >
             <ArrowLeft size={20} color="#fff" />
           </button>
-          <div>
+          <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <GraduationCap size={22} color="#fff" />
               <h1 style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: 0 }}>
                 Painel do Professor
               </h1>
             </div>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', margin: '2px 0 0' }}>
-              Gerencie turmas e acompanhe alunos
-            </p>
+            {user && (
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', margin: '2px 0 0' }}>
+                {user.displayName}
+              </p>
+            )}
           </div>
+          <button
+            onClick={handleLogout}
+            title="Sair"
+            style={{
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: 10, padding: '8px 12px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+              color: '#fff', fontSize: 12, fontWeight: 600,
+            }}
+          >
+            <LogOut size={14} />
+            Sair
+          </button>
         </div>
       </header>
 

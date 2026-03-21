@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Settings, BarChart3, BookOpen, Library, Link, Route, Search,
+  Settings, BarChart3, BookOpen, Library, Link, Route, Search, LogOut, Users,
 } from 'lucide-react';
 import Dashboard from './Dashboard';
 import StoryManager from './StoryManager';
@@ -9,6 +10,7 @@ import MatchGameEditor from './MatchGameEditor';
 import TrackEditor from './TrackEditor';
 import WordSearchEditor from './WordSearchEditor';
 import ScreenHeader from '../../shared/components/layout/ScreenHeader';
+import { useAuthStore } from '../../shared/stores/authStore';
 
 interface Props { onBack: () => void; }
 
@@ -25,8 +27,15 @@ const TABS: { id: Tab; label: string; Icon: typeof BarChart3; color: string }[] 
 
 export default function AdminPanel({ onBack }: Props) {
   const [tab, setTab] = useState<Tab>('dashboard');
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
 
   const activeTab = TABS.find(t => t.id === tab)!;
+
+  function handleLogout() {
+    logout();
+    navigate('/login', { replace: true });
+  }
 
   return (
     <div className="ds-screen" style={{ background: 'var(--color-bg)', overflowY: 'auto' }}>
@@ -35,6 +44,42 @@ export default function AdminPanel({ onBack }: Props) {
         icon={<Settings size={20} />}
         onBack={onBack}
         subtitle={activeTab.label}
+        actions={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {user && (
+              <span style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                fontSize: 12, fontWeight: 600,
+                color: 'var(--color-text-2)',
+                padding: '4px 10px',
+                borderRadius: 20,
+                background: 'var(--color-bg)',
+                border: '1px solid var(--color-border)',
+              }}>
+                <Users size={12} />
+                {user.displayName}
+              </span>
+            )}
+            <button
+              onClick={handleLogout}
+              title="Sair"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '6px 10px',
+                borderRadius: 20,
+                border: '1px solid #fca5a5',
+                background: '#fef2f2',
+                color: '#ef4444',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <LogOut size={12} />
+              Sair
+            </button>
+          </div>
+        }
       />
 
       {/* Tab bar */}
