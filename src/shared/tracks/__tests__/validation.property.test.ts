@@ -336,7 +336,7 @@ describe('Property 12: Integridade das trilhas builtin', () => {
       expect(typeof track.id).toBe('string');
       expect(track.name).toBeTruthy();
       expect(typeof track.name).toBe('string');
-      expect(['3-4', '5-6', '7-8']).toContain(track.ageGroup);
+      expect(['3-4', '5-6', '7-8', '9-10']).toContain(track.ageGroup);
       expect(track.emoji).toBeTruthy();
       expect(track.color).toBeTruthy();
       expect(typeof track.version).toBe('number');

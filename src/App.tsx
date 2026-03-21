@@ -24,6 +24,8 @@ import AgeSelectorScreen from './features/tracks/AgeSelectorScreen';
 import TrackPathScreen from './features/tracks/TrackPathScreen';
 import TrackLessonRunner from './features/tracks/TrackLessonRunner';
 import TrackEditor from './features/admin/TrackEditor';
+import ParentDashboard from './features/parent/ParentDashboard';
+import TeacherDashboard from './features/teacher/TeacherDashboard';
 import ScreenHeader from './shared/components/layout/ScreenHeader';
 import type { Word } from './shared/data/words';
 import type { GameComponentProps } from './shared/types';
@@ -172,6 +174,8 @@ const router = createHashRouter([
   { path: '/stories/:storyId/:mode',     element: <StoryPlayerRoute /> },
   { path: '/lesson/:unitId/:lessonId',   element: <LessonRoute /> },
   { path: '/admin',                      element: <AdminRoute /> },
+  { path: '/parent',                     element: <ParentDashboard /> },
+  { path: '/teacher',                    element: <TeacherDashboard /> },
 ]);
 
 export default function App() {
