@@ -1,0 +1,44 @@
+name: PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        if: github.event.action != 'closed'
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: yarn install --frozen-lockfile
+
+      - name: Build PR preview
+        if: github.event.action != 'closed'
+        run: yarn build
+        env:
+          VITE_BASE: /silabrinca/pr-preview/pr-${{ github.event.pull_request.number }}/
+
+      - name: Deploy PR preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: dist
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto
+          token: ${{ secrets.GITHUB_TOKEN }}
