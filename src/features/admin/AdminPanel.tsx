@@ -9,28 +9,44 @@ import WordBank from './WordBank';
 import MatchGameEditor from './MatchGameEditor';
 import TrackEditor from './TrackEditor';
 import WordSearchEditor from './WordSearchEditor';
+import UsersManager from './UsersManager';
 import ScreenHeader from '../../shared/components/layout/ScreenHeader';
 import { useAuthStore } from '../../shared/stores/authStore';
+import type { AuthUser } from '../../shared/schemas/auth.schema';
 
 interface Props { onBack: () => void; }
 
-type Tab = 'dashboard' | 'stories' | 'words' | 'matchgame' | 'tracks' | 'wordsearch';
+type Tab = 'dashboard' | 'stories' | 'words' | 'matchgame' | 'tracks' | 'wordsearch' | 'users';
 
-const TABS: { id: Tab; label: string; Icon: typeof BarChart3; color: string }[] = [
-  { id: 'dashboard',   label: 'Dashboard', Icon: BarChart3, color: '#6C5CE7' },
-  { id: 'stories',     label: 'Histórias', Icon: BookOpen,  color: '#E17055' },
-  { id: 'words',       label: 'Palavras',  Icon: Library,   color: '#0984E3' },
-  { id: 'matchgame',   label: 'Ligar',     Icon: Link,      color: '#6A1B9A' },
-  { id: 'tracks',      label: 'Trilhas',   Icon: Route,     color: '#00897B' },
-  { id: 'wordsearch',  label: 'Caça Pal.', Icon: Search,    color: '#C62828' },
+interface TabDef {
+  id: Tab;
+  label: string;
+  Icon: typeof BarChart3;
+  color: string;
+  /** If set, only these roles can see this tab */
+  roles?: AuthUser['role'][];
+}
+
+const ALL_TABS: TabDef[] = [
+  { id: 'dashboard',  label: 'Dashboard', Icon: BarChart3, color: '#6C5CE7' },
+  { id: 'stories',    label: 'Histórias', Icon: BookOpen,  color: '#E17055' },
+  { id: 'words',      label: 'Palavras',  Icon: Library,   color: '#0984E3' },
+  { id: 'matchgame',  label: 'Ligar',     Icon: Link,      color: '#6A1B9A' },
+  { id: 'tracks',     label: 'Trilhas',   Icon: Route,     color: '#00897B' },
+  { id: 'wordsearch', label: 'Caça Pal.', Icon: Search,    color: '#C62828' },
+  { id: 'users',      label: 'Utilizad.', Icon: Users,     color: '#F39C12', roles: ['admin'] },
 ];
 
 export default function AdminPanel({ onBack }: Props) {
-  const [tab, setTab] = useState<Tab>('dashboard');
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
-  const activeTab = TABS.find(t => t.id === tab)!;
+  // Filter tabs by role
+  const tabs = ALL_TABS.filter(t => !t.roles || (user && t.roles.includes(user.role)));
+
+  const [tab, setTab] = useState<Tab>('dashboard');
+  // Fallback if current tab becomes invisible after role change
+  const activeTab = tabs.find(t => t.id === tab) ?? tabs[0];
 
   function handleLogout() {
     logout();
@@ -90,8 +106,8 @@ export default function AdminPanel({ onBack }: Props) {
         overflowX: 'auto',
       }} className="scrollbar-hide">
         <div style={{ display: 'flex', minWidth: 'max-content', padding: '0 8px' }}>
-          {TABS.map(t => {
-            const active = tab === t.id;
+          {tabs.map(t => {
+            const active = activeTab.id === t.id;
             return (
               <button
                 key={t.id}
@@ -129,12 +145,13 @@ export default function AdminPanel({ onBack }: Props) {
 
       {/* Content */}
       <div style={{ flex: 1 }}>
-        {tab === 'dashboard'   && <Dashboard />}
-        {tab === 'stories'     && <StoryManager />}
-        {tab === 'words'       && <WordBank />}
-        {tab === 'matchgame'   && <MatchGameEditor />}
-        {tab === 'tracks'      && <TrackEditor />}
-        {tab === 'wordsearch'  && <WordSearchEditor />}
+        {activeTab.id === 'dashboard'  && <Dashboard />}
+        {activeTab.id === 'stories'    && <StoryManager />}
+        {activeTab.id === 'words'      && <WordBank />}
+        {activeTab.id === 'matchgame'  && <MatchGameEditor />}
+        {activeTab.id === 'tracks'     && <TrackEditor />}
+        {activeTab.id === 'wordsearch' && <WordSearchEditor />}
+        {activeTab.id === 'users'      && <UsersManager />}
       </div>
     </div>
   );
