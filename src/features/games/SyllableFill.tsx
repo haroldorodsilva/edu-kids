@@ -226,7 +226,7 @@ export default function SyllableFill({ onBack, rounds, onComplete }: GameCompone
 
   if (!current && !done) return null;
 
-  const theme = getTheme('silfamilia');
+  const _theme = getTheme('silfamilia'); void _theme;
 
   return (
     <GameLayout

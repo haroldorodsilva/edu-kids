@@ -27,6 +27,7 @@ export const GAME_THEMES = [
   { id: 'silfamilia',    icon: 'Grid3x3',        label: 'Família Silábica', color: '#0288D1', bg: '#E1F5FE', gradient: 'linear-gradient(135deg, #E1F5FE, #81D4FA)', textColor: '#01579B' },
   { id: 'ditado',        icon: 'Mic',            label: 'Ditado',         color: '#388E3C', bg: '#E8F5E9', gradient: 'linear-gradient(135deg, #E8F5E9, #A5D6A7)', textColor: '#1B5E20' },
   { id: 'silfill',       icon: 'SquareDashedBottom', label: 'Completar Sílaba', color: '#7B1FA2', bg: '#F3E5F5', gradient: 'linear-gradient(135deg, #F3E5F5, #CE93D8)', textColor: '#6A1B9A' },
+  { id: 'cacapalavras', icon: 'Search',             label: 'Caça Palavras',   color: '#C62828', bg: '#FFEBEE', gradient: 'linear-gradient(135deg, #FFEBEE, #EF9A9A)', textColor: '#B71C1C' },
 ] as const satisfies readonly GameTheme[];
 
 /** Union type of all valid game IDs, derived from GAME_THEMES */

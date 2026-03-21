@@ -7,9 +7,10 @@ import type { Track, TrackUnit, TrackLesson, TrackLessonResult } from '../../sha
 
 // ─── Age-group theming ─────────────────────────────────────────
 const AGE_THEME: Record<AgeGroup, { emoji: string; color: string; label: string }> = {
-  '3-4': { emoji: '🧒', color: '#27ae60', label: '3–4 anos' },
-  '5-6': { emoji: '👦', color: '#2980b9', label: '5–6 anos' },
-  '7-8': { emoji: '👧', color: '#8e44ad', label: '7–8 anos' },
+  '3-4':  { emoji: '🧒', color: '#27ae60', label: '3–4 anos' },
+  '5-6':  { emoji: '👦', color: '#2980b9', label: '5–6 anos' },
+  '7-8':  { emoji: '👧', color: '#8e44ad', label: '7–8 anos' },
+  '9-10': { emoji: '🧑', color: '#e67e22', label: '9–10 anos' },
 };
 
 // ─── Layout constants (same as PathScreen) ─────────────────────

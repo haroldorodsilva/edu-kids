@@ -146,7 +146,7 @@ export const SYLLABLE_SPOT_DATA: SpotChallenge[] = RAW.map(r => ({
 
 // Cores do tema
 const COLOR  = '#7B1FA2';
-const BG     = '#F3E5F5';
+void ('#F3E5F5'); // BG (reserved for future use)
 const TEXT   = '#6A1B9A';
 const GRAD   = 'linear-gradient(135deg, #F3E5F5, #CE93D8)';
 
@@ -200,7 +200,7 @@ export default function SyllableSpot({ onBack, rounds, onComplete }: GameCompone
     }
   }, [current, selected, advance, addError, triggerShake]);
 
-  const _theme = getTheme('silspot');
+  void getTheme('silspot');
   if (!current && !done) return null;
 
   return (
