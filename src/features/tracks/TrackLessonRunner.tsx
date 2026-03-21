@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Trophy, Star, ChevronRight } from 'lucide-react';
-import { getTrackById, saveTrackLessonResult, getRotationHistory, recordRotation } from '../../shared/tracks/trackStore';
+import { getRotationHistory } from '../../shared/tracks/trackStore';
+import { useTrackById, useSaveTrackLessonResult, useRecordRotation } from '../../shared/queries/tracks.queries';
 import { selectNextGame } from '../../shared/tracks/rotation';
 import { words } from '../../shared/data/words';
 import { sentences } from '../../shared/data/sentences';
@@ -49,7 +50,7 @@ export default function TrackLessonRunner() {
   const ui = Number(unitIdx) || 0;
   const li = Number(lessonIdx) || 0;
 
-  const track = useMemo(() => getTrackById(trackId ?? ''), [trackId]);
+  const { data: track } = useTrackById(trackId ?? '');
   const unit = track?.units[ui];
   const lesson = unit?.lessons[li];
 
@@ -75,6 +76,9 @@ export default function TrackLessonRunner() {
       return { ...act, gameType: nextType as TrackActivity['gameType'] };
     });
   }, [lesson]);
+
+  const saveResult = useSaveTrackLessonResult();
+  const recordRotationMutation = useRecordRotation();
 
   const [activityIdx, setActivityIdx] = useState(0);
   const [totalErrors, setTotalErrors] = useState(0);
@@ -106,7 +110,7 @@ export default function TrackLessonRunner() {
 
     // Record rotation for this activity's game type
     if (activity) {
-      recordRotation(lesson!.id, activity.gameType);
+      recordRotationMutation.mutate({ lessonId: lesson!.id, gameType: activity.gameType });
     }
 
     if (activityIdx + 1 >= totalActivities) {
@@ -119,7 +123,7 @@ export default function TrackLessonRunner() {
         completedAt: new Date().toISOString(),
         errors: newErrors,
       };
-      saveTrackLessonResult(track!.id, lesson!.id, result);
+      saveResult.mutate({ trackId: track!.id, lessonId: lesson!.id, result });
       setLessonDone(true);
       beep('yay');
     } else {

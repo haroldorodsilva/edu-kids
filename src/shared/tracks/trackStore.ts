@@ -74,7 +74,7 @@ export function deleteTrack(id: string): void {
 /** Retorna a faixa etária selecionada (ou null). */
 export function getSelectedAge(): AgeGroup | null {
   const raw = localStorage.getItem(AGE_KEY);
-  if (raw === '3-4' || raw === '5-6' || raw === '7-8') return raw;
+  if (raw === '3-4' || raw === '5-6' || raw === '7-8' || raw === '9-10') return raw;
   return null;
 }
 
@@ -187,7 +187,7 @@ export function recordRotation(lessonId: string, gameType: string): void {
 // Exportação / Importação
 // ---------------------------------------------------------------------------
 
-const AGE_GROUPS: AgeGroup[] = ['3-4', '5-6', '7-8'];
+const AGE_GROUPS: AgeGroup[] = ['3-4', '5-6', '7-8', '9-10'];
 
 /** Exporta todos os dados (trilhas custom + progresso de todas as faixas + rotação) como JSON. */
 export function exportAllData(): string {

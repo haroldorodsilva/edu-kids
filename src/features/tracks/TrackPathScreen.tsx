@@ -1,7 +1,7 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Check, Lock, Gamepad2, Star, Pencil, Undo2 } from 'lucide-react';
-import { getTracksByAge, getTrackProgress } from '../../shared/tracks/trackStore';
+import { useTracksByAge, useTrackProgress } from '../../shared/queries/tracks.queries';
 import type { AgeGroup } from '../../shared/tracks/types';
 import type { Track, TrackUnit, TrackLesson, TrackLessonResult } from '../../shared/tracks/types';
 
@@ -112,8 +112,8 @@ export default function TrackPathScreen() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const tracks = useMemo(() => getTracksByAge(age), [age]);
-  const progressList = useMemo(() => getTrackProgress(age), [age]);
+  const { data: tracks = [] } = useTracksByAge(age);
+  const { data: progressList = [] } = useTrackProgress(age);
 
   // Merge all completed lessons across all tracks for this age group
   const completedLessons = useMemo(() => {

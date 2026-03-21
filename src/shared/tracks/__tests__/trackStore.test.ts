@@ -388,7 +388,7 @@ describe('exportAllData', () => {
     expect(data).toHaveProperty('progress');
     expect(data).toHaveProperty('rotationHistory');
     expect(data.customTracks).toEqual([]);
-    expect(data.progress).toEqual({ '3-4': [], '5-6': [], '7-8': [] });
+    expect(data.progress).toEqual({ '3-4': [], '5-6': [], '7-8': [], '9-10': [] });
     expect(data.rotationHistory).toEqual({});
   });
 
