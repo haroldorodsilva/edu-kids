@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
+  getAllTracks,
   getTracksByAge,
   getTrackById,
   getTrackProgress,
@@ -23,6 +24,13 @@ export const trackKeys = {
 };
 
 // ── Query hooks ──────────────────────────────────────────────────────────────
+
+export function useAllTracks() {
+  return useQuery({
+    queryKey: trackKeys.all,
+    queryFn: () => getAllTracks(),
+  });
+}
 
 export function useTracksByAge(age: AgeGroup) {
   return useQuery({

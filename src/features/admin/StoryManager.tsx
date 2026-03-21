@@ -1,25 +1,45 @@
 import { useState } from 'react';
-import { ArrowLeft, BookOpen, Trash2, Check, Sparkles } from 'lucide-react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { ArrowLeft, BookOpen, Trash2, Check, Sparkles, Plus, X } from 'lucide-react';
 import { stories } from '../../shared/data/stories';
-import { getCustomStories, saveCustomStory, deleteCustomStory } from '../../shared/data/customStories';
+import { useAllStories, useSaveStory, useDeleteStory } from '../../shared/queries/stories.queries';
 import type { Story } from '../../shared/data/stories';
 
 type View = 'list' | 'detail' | 'create';
 
+// ── Zod schema for create form ─────────────────────────────────
+
+const CreateStorySchema = z.object({
+  emoji: z.string().min(1),
+  title: z.string().min(1, 'Digite o título.'),
+  difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  theme: z.string().optional(),
+  sentences: z.array(z.object({ value: z.string() }))
+    .min(1)
+    .refine(
+      arr => arr.some(s => s.value.trim().length > 0),
+      { message: 'Adicione ao menos uma frase.' },
+    ),
+});
+
+type CreateStoryForm = z.infer<typeof CreateStorySchema>;
+
 export default function StoryManager() {
   const [view, setView] = useState<View>('list');
   const [selected, setSelected] = useState<string | null>(null);
-  const [customStories, setCustomStories] = useState<Story[]>(() => getCustomStories());
 
-  function refreshCustom() {
-    setCustomStories(getCustomStories());
-  }
+  const { data: allStories = [] } = useAllStories();
+  const saveStory = useSaveStory();
+  const deleteStory = useDeleteStory();
+
+  const customIds = new Set(allStories.filter(s => !stories.some(b => b.id === s.id)).map(s => s.id));
 
   // --- Detail view ---
   if (view === 'detail' && selected) {
-    const allStories = [...stories, ...customStories];
     const story = allStories.find(s => s.id === selected);
-    const isCustom = customStories.some(s => s.id === selected);
+    const isCustom = customIds.has(selected);
 
     if (!story) { setView('list'); return null; }
 
@@ -37,7 +57,9 @@ export default function StoryManager() {
             </div>
             {isCustom && (
               <button
-                onClick={() => { deleteCustomStory(story.id); refreshCustom(); setView('list'); }}
+                onClick={() => {
+                  deleteStory.mutate(story.id, { onSuccess: () => setView('list') });
+                }}
                 className="text-red-400 font-bold text-sm px-3 py-1 rounded-xl bg-red-50 flex items-center gap-1"
               >
                 <Trash2 size={14} /> Excluir
@@ -62,16 +84,16 @@ export default function StoryManager() {
   // --- Create form view ---
   if (view === 'create') {
     return (
-      <CreateStoryForm
+      <CreateStoryFormView
         onCancel={() => setView('list')}
-        onSave={(story) => { saveCustomStory(story); refreshCustom(); setView('list'); }}
+        onSave={(story) => {
+          saveStory.mutate(story, { onSuccess: () => setView('list') });
+        }}
       />
     );
   }
 
   // --- List view ---
-  const allStories = [...stories, ...customStories];
-
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
@@ -85,7 +107,7 @@ export default function StoryManager() {
       </div>
       <div className="space-y-3">
         {allStories.map(s => {
-          const isCustom = customStories.some(c => c.id === s.id);
+          const isCustom = customIds.has(s.id);
           return (
             <button
               key={s.id}
@@ -108,7 +130,8 @@ export default function StoryManager() {
   );
 }
 
-// ---- Create Story Form ----
+// ── Create Story Form (RHF + Zod) ─────────────────────────────
+
 interface CreateProps {
   onCancel: () => void;
   onSave: (story: Story) => void;
@@ -116,36 +139,39 @@ interface CreateProps {
 }
 
 export function CreateStoryForm({ onCancel, onSave, prefill }: CreateProps) {
-  const [title, setTitle] = useState(prefill?.title ?? '');
-  const [emoji, setEmoji] = useState(prefill?.emoji ?? '📖');
-  const [difficulty, setDifficulty] = useState<1 | 2 | 3>(prefill?.difficulty ?? 1);
-  const [theme, setTheme] = useState(prefill?.theme ?? '');
-  const [sentences, setSentences] = useState<string[]>(prefill?.sentences ?? ['']);
-  const [error, setError] = useState('');
+  return <CreateStoryFormView onCancel={onCancel} onSave={onSave} prefill={prefill} />;
+}
 
-  function addSentence() {
-    setSentences(s => [...s, '']);
-  }
+function CreateStoryFormView({ onCancel, onSave, prefill }: CreateProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateStoryForm>({
+    resolver: zodResolver(CreateStorySchema),
+    defaultValues: {
+      emoji: prefill?.emoji ?? '📖',
+      title: prefill?.title ?? '',
+      difficulty: prefill?.difficulty ?? 1,
+      theme: prefill?.theme ?? '',
+      sentences: prefill?.sentences?.map(s => ({ value: s })) ?? [{ value: '' }],
+    },
+  });
 
-  function removeSentence(i: number) {
-    setSentences(s => s.filter((_, idx) => idx !== i));
-  }
+  const { fields, append, remove } = useFieldArray({ control, name: 'sentences' });
+  const difficulty = watch('difficulty');
 
-  function updateSentence(i: number, val: string) {
-    setSentences(s => s.map((item, idx) => idx === i ? val : item));
-  }
-
-  function handleSave() {
-    if (!title.trim()) { setError('Digite o título.'); return; }
-    const valid = sentences.map(s => s.trim()).filter(Boolean);
-    if (valid.length === 0) { setError('Adicione ao menos uma frase.'); return; }
+  function onSubmit(data: CreateStoryForm) {
     const story: Story = {
       id: `custom_${Date.now()}`,
-      title: title.trim(),
-      emoji: emoji.trim() || '📖',
-      difficulty,
-      theme: theme.trim() || '',
-      sentences: valid,
+      title: data.title.trim(),
+      emoji: data.emoji.trim() || '📖',
+      difficulty: data.difficulty,
+      theme: data.theme?.trim() || '',
+      sentences: data.sentences.map(s => s.value.trim()).filter(Boolean),
     };
     onSave(story);
   }
@@ -155,15 +181,19 @@ export function CreateStoryForm({ onCancel, onSave, prefill }: CreateProps) {
       <button onClick={onCancel} className="text-blue-600 font-bold mb-4 flex items-center gap-1"><ArrowLeft size={16} /> Cancelar</button>
       <h2 className="text-xl font-bold text-gray-800 mb-4">Nova História</h2>
 
-      {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+      {/* Top-level errors */}
+      {(errors.title || errors.sentences) && (
+        <p className="text-red-500 text-sm mb-3">
+          {errors.title?.message ?? errors.sentences?.message ?? errors.sentences?.root?.message}
+        </p>
+      )}
 
-      <div className="space-y-3 mb-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 mb-4">
         <div className="flex gap-2">
           <div className="w-16">
             <label className="text-xs text-gray-500">Emoji</label>
             <input
-              value={emoji}
-              onChange={e => setEmoji(e.target.value)}
+              {...register('emoji')}
               className="w-full px-2 py-2 rounded-xl border-2 border-gray-200 text-center text-2xl"
               maxLength={4}
             />
@@ -171,10 +201,9 @@ export function CreateStoryForm({ onCancel, onSave, prefill }: CreateProps) {
           <div className="flex-1">
             <label className="text-xs text-gray-500">Título *</label>
             <input
-              value={title}
-              onChange={e => setTitle(e.target.value)}
+              {...register('title')}
               placeholder="Ex: O coelho e a cenoura"
-              className="w-full px-3 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 outline-none text-sm"
+              className={`w-full px-3 py-2 rounded-xl border-2 outline-none text-sm ${errors.title ? 'border-red-400' : 'border-gray-200 focus:border-purple-400'}`}
             />
           </div>
         </div>
@@ -186,7 +215,8 @@ export function CreateStoryForm({ onCancel, onSave, prefill }: CreateProps) {
               {([1, 2, 3] as const).map(d => (
                 <button
                   key={d}
-                  onClick={() => setDifficulty(d)}
+                  type="button"
+                  onClick={() => setValue('difficulty', d)}
                   className="flex-1 py-2 rounded-xl font-bold text-sm transition-colors"
                   style={{ backgroundColor: difficulty === d ? '#7B1FA2' : '#E1BEE7', color: difficulty === d ? 'white' : '#4A148C' }}
                 >
@@ -198,8 +228,7 @@ export function CreateStoryForm({ onCancel, onSave, prefill }: CreateProps) {
           <div className="flex-1">
             <label className="text-xs text-gray-500">Tema (opcional)</label>
             <input
-              value={theme}
-              onChange={e => setTheme(e.target.value)}
+              {...register('theme')}
               placeholder="Ex: animal"
               className="w-full px-3 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 outline-none text-sm mt-1"
             />
@@ -209,36 +238,39 @@ export function CreateStoryForm({ onCancel, onSave, prefill }: CreateProps) {
         <div>
           <label className="text-xs text-gray-500">Frases *</label>
           <div className="space-y-2 mt-1">
-            {sentences.map((s, i) => (
-              <div key={i} className="flex gap-2 items-center">
+            {fields.map((field, i) => (
+              <div key={field.id} className="flex gap-2 items-center">
                 <span className="text-gray-400 text-xs w-4">{i + 1}.</span>
                 <input
-                  value={s}
-                  onChange={e => updateSentence(i, e.target.value)}
+                  {...register(`sentences.${i}.value`)}
                   placeholder="Digite a frase..."
                   className="flex-1 px-3 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 outline-none text-sm"
                 />
-                {sentences.length > 1 && (
-                  <button onClick={() => removeSentence(i)} className="text-red-400 font-bold text-lg w-8">×</button>
+                {fields.length > 1 && (
+                  <button type="button" onClick={() => remove(i)} className="text-red-400 p-1">
+                    <X size={16} />
+                  </button>
                 )}
               </div>
             ))}
           </div>
           <button
-            onClick={addSentence}
-            className="mt-2 text-purple-600 font-bold text-sm"
+            type="button"
+            onClick={() => append({ value: '' })}
+            className="mt-2 text-purple-600 font-bold text-sm flex items-center gap-1"
           >
-            + Adicionar frase
+            <Plus size={14} /> Adicionar frase
           </button>
         </div>
-      </div>
 
-      <button
-        onClick={handleSave}
-        className="w-full py-3 bg-purple-600 text-white rounded-2xl font-bold"
-      >
-        <Check size={16} className="inline mr-1" /> Salvar História
-      </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full py-3 bg-purple-600 text-white rounded-2xl font-bold"
+        >
+          <Check size={16} className="inline mr-1" /> Salvar História
+        </button>
+      </form>
     </div>
   );
 }

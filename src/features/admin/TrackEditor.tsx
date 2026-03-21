@@ -2,7 +2,9 @@
 import { useState, useMemo } from 'react';
 import { Route, Check, Copy, Pencil, Trash2, Settings, Save, ArrowLeft, Gamepad2 } from 'lucide-react';
 import LucideIcon from '../../shared/components/ui/LucideIcon';
-import { getAllTracks, saveTrack, deleteTrack, getTrackProgress } from '../../shared/tracks/trackStore';
+import { getTrackProgress } from '../../shared/tracks/trackStore';
+import { useAllTracks, useSaveTrack, useDeleteTrack } from '../../shared/queries/tracks.queries';
+import { TrackSchema } from '../../shared/schemas/track.schema';
 import type { Track, TrackUnit, TrackLesson, TrackActivity, TrackGameType, AgeGroup } from '../../shared/tracks/types';
 import { words } from '../../shared/data/words';
 import { getMatchGames } from '../../shared/data/matchGames';
@@ -15,9 +17,10 @@ import { getAllStories } from '../../shared/data/customStories';
 function newId(prefix: string) { return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`; }
 
 const AGE_GROUPS: { id: AgeGroup; label: string; emoji: string; color: string }[] = [
-  { id: '3-4', label: '3–4 anos', emoji: '🧒', color: '#00B894' },
-  { id: '5-6', label: '5–6 anos', emoji: '👦', color: '#0984E3' },
-  { id: '7-8', label: '7–8 anos', emoji: '👧', color: '#6C5CE7' },
+  { id: '3-4',  label: '3–4 anos',  emoji: '🧒', color: '#00B894' },
+  { id: '5-6',  label: '5–6 anos',  emoji: '👦', color: '#0984E3' },
+  { id: '7-8',  label: '7–8 anos',  emoji: '👧', color: '#6C5CE7' },
+  { id: '9-10', label: '9–10 anos', emoji: '🎓', color: '#7c3aed' },
 ];
 
 const GAME_TYPES: { id: TrackGameType; label: string; icon: string }[] = [
@@ -63,8 +66,14 @@ function emptyActivity(): TrackActivity {
   return { id: newId('act'), gameType: 'quiz', wordIds: [], rounds: 5 };
 }
 
-/** Validate track before saving: each lesson must have >= 1 activity */
+/** Validate track before saving using Zod schema + business rules */
 export function validateTrack(track: Track): string | null {
+  const result = TrackSchema.safeParse(track);
+  if (!result.success) {
+    const issues = result.error.issues ?? (result.error as unknown as { errors: Array<{ message: string }> }).errors;
+    const first = issues?.[0];
+    return first?.message ?? 'Dados inválidos na trilha';
+  }
   if (!track.name.trim()) return 'Informe o nome da trilha';
   if (track.units.length === 0) return 'Adicione pelo menos 1 unidade';
   for (const unit of track.units) {
@@ -105,16 +114,14 @@ function pillBtn(active: boolean, activeColor: string): React.CSSProperties {
 // ---------------------------------------------------------------------------
 
 export default function TrackEditor() {
-  const [tracks, setTracks] = useState(() => getAllTracks());
+  const { data: tracks = [] } = useAllTracks();
+  const saveTrackMutation = useSaveTrack();
+  const deleteTrackMutation = useDeleteTrack();
   const [editing, setEditing] = useState<Track | null>(null);
-
-  function refresh() { setTracks(getAllTracks()); }
 
   function handleSave(track: Track) {
     const updated = { ...track, updatedAt: new Date().toISOString() };
-    saveTrack(updated);
-    refresh();
-    setEditing(null);
+    saveTrackMutation.mutate(updated, { onSuccess: () => setEditing(null) });
   }
 
   function handleDelete(id: string) {
@@ -126,8 +133,7 @@ export default function TrackEditor() {
       ? '⚠️ Esta trilha tem progresso de alunos associado. O progresso será mantido mas a trilha ficará inacessível. Deseja excluir?'
       : 'Excluir esta trilha?';
     if (!confirm(msg)) return;
-    deleteTrack(id);
-    refresh();
+    deleteTrackMutation.mutate({ id, ageGroup: track.ageGroup });
   }
 
   function handleDuplicate(track: Track) {
