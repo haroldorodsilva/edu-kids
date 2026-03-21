@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, BookOpen, Trash2, Check, Sparkles, Plus, X } from 'lucide-react';
+import { ArrowLeft, BookOpen, Trash2, Check, Sparkles, Plus, X, Eye } from 'lucide-react';
 import { stories } from '../../shared/data/stories';
 import { useAllStories, useSaveStory, useDeleteStory } from '../../shared/queries/stories.queries';
+import PreviewModal from '../../shared/components/admin/PreviewModal';
 import type { Story } from '../../shared/data/stories';
 
 type View = 'list' | 'detail' | 'create';
@@ -29,6 +30,7 @@ type CreateStoryForm = z.infer<typeof CreateStorySchema>;
 export default function StoryManager() {
   const [view, setView] = useState<View>('list');
   const [selected, setSelected] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState<Story | null>(null);
 
   const { data: allStories = [] } = useAllStories();
   const saveStory = useSaveStory();
@@ -96,6 +98,42 @@ export default function StoryManager() {
   // --- List view ---
   return (
     <div className="p-4">
+      {previewing && (
+        <PreviewModal title={previewing.title} onClose={() => setPreviewing(null)}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+            <span style={{ fontSize: 48 }}>{previewing.emoji}</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-text)', marginBottom: 4 }}>{previewing.title}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-2)' }}>
+                Nível {previewing.difficulty}
+                {previewing.theme ? ` · ${previewing.theme}` : ''}
+                {` · ${previewing.sentences.length} frase${previewing.sentences.length !== 1 ? 's' : ''}`}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {previewing.sentences.map((sentence, i) => (
+              <div key={i} style={{
+                display: 'flex', gap: 12, alignItems: 'flex-start',
+                padding: '12px 14px', borderRadius: 12,
+                background: i % 2 === 0 ? '#f8f6ff' : 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+              }}>
+                <span style={{
+                  flexShrink: 0, width: 24, height: 24, borderRadius: '50%',
+                  background: '#6C5CE7', color: '#fff',
+                  fontSize: 11, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {i + 1}
+                </span>
+                <span style={{ fontSize: 15, color: 'var(--color-text)', lineHeight: 1.5, flex: 1 }}>{sentence}</span>
+              </div>
+            ))}
+          </div>
+        </PreviewModal>
+      )}
+
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><BookOpen size={22} /> Histórias</h2>
         <button
@@ -109,20 +147,32 @@ export default function StoryManager() {
         {allStories.map(s => {
           const isCustom = customIds.has(s.id);
           return (
-            <button
+            <div
               key={s.id}
-              onClick={() => { setSelected(s.id); setView('detail'); }}
-              className="w-full bg-white rounded-2xl p-4 shadow text-left flex items-center gap-3 hover:bg-gray-50"
+              className="w-full bg-white rounded-2xl p-4 shadow text-left flex items-center gap-3"
             >
-              <span className="text-3xl">{s.emoji}</span>
-              <div className="flex-1 min-w-0">
+              <span className="text-3xl" style={{ cursor: 'pointer' }} onClick={() => { setSelected(s.id); setView('detail'); }}>{s.emoji}</span>
+              <div className="flex-1 min-w-0" style={{ cursor: 'pointer' }} onClick={() => { setSelected(s.id); setView('detail'); }}>
                 <p className="font-bold text-gray-800 truncate">{s.title}</p>
                 <p className="text-sm text-gray-500">{s.sentences.length} frases • N{s.difficulty}</p>
               </div>
               {isCustom && (
                 <span className="text-xs bg-purple-100 text-purple-600 rounded-full px-2 py-0.5 flex items-center gap-1"><Sparkles size={10} /> Nova</span>
               )}
-            </button>
+              <button
+                onClick={() => setPreviewing(s)}
+                style={{
+                  background: '#E3F2FD', border: 'none', borderRadius: 8,
+                  width: 32, height: 32, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#0984E3', flexShrink: 0,
+                }}
+                title="Pré-visualizar"
+                aria-label="Pré-visualizar história"
+              >
+                <Eye size={15} />
+              </button>
+            </div>
           );
         })}
       </div>

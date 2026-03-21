@@ -1,14 +1,16 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useMemo } from 'react';
-import { Route, Check, Copy, Pencil, Trash2, Settings, Save, ArrowLeft, Gamepad2 } from 'lucide-react';
+import { Route, Check, Copy, Pencil, Trash2, Settings, Save, ArrowLeft, Gamepad2, Eye } from 'lucide-react';
 import LucideIcon from '../../shared/components/ui/LucideIcon';
 import { getTrackProgress } from '../../shared/tracks/trackStore';
 import { useAllTracks, useSaveTrack, useDeleteTrack } from '../../shared/queries/tracks.queries';
 import { TrackSchema } from '../../shared/schemas/track.schema';
 import type { Track, TrackUnit, TrackLesson, TrackActivity, TrackGameType, AgeGroup } from '../../shared/tracks/types';
-import { words } from '../../shared/data/words';
 import { getMatchGames } from '../../shared/data/matchGames';
 import { getAllStories } from '../../shared/data/customStories';
+import WordPickerField from '../../shared/components/form/WordPickerField';
+import PreviewModal from '../../shared/components/admin/PreviewModal';
+import TrackPreviewPanel from '../../shared/components/admin/TrackPreviewPanel';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -35,13 +37,6 @@ const GAME_TYPES: { id: TrackGameType; label: string; icon: string }[] = [
   { id: 'matchgame',     label: 'Ligar/Contar',    icon: 'Link' },
 ];
 
-const DIFFICULTIES = [
-  { value: 1, label: 'Nível 1' },
-  { value: 2, label: 'Nível 2' },
-  { value: 3, label: 'Nível 3' },
-];
-
-const CATEGORIES = [...new Set(words.map(w => w.category))].sort();
 
 function emptyTrack(ageGroup: AgeGroup = '3-4'): Track {
   const now = new Date().toISOString();
@@ -118,6 +113,7 @@ export default function TrackEditor() {
   const saveTrackMutation = useSaveTrack();
   const deleteTrackMutation = useDeleteTrack();
   const [editing, setEditing] = useState<Track | null>(null);
+  const [previewing, setPreviewing] = useState<Track | null>(null);
 
   function handleSave(track: Track) {
     const updated = { ...track, updatedAt: new Date().toISOString() };
@@ -161,6 +157,12 @@ export default function TrackEditor() {
 
   return (
     <div style={{ padding: 16 }}>
+      {previewing && (
+        <PreviewModal title={previewing.name || 'Trilha'} onClose={() => setPreviewing(null)}>
+          <TrackPreviewPanel track={previewing} />
+        </PreviewModal>
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Route size={20} /> Trilhas de Aprendizado
@@ -215,6 +217,8 @@ export default function TrackEditor() {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  <button onClick={() => setPreviewing(track)}
+                    className="ds-btn ds-btn-icon" style={{ background: '#E3F2FD', color: '#0984E3', width: 34, height: 34, fontSize: 14 }} title="Pré-visualizar" aria-label="Pré-visualizar trilha"><Eye size={16} /></button>
                   <button onClick={() => handleDuplicate(track)}
                     className="ds-btn ds-btn-icon" style={{ background: '#E8F5E9', color: '#00B894', width: 34, height: 34, fontSize: 14 }} title="Duplicar" aria-label="Duplicar trilha"><Copy size={16} /></button>
                   {!track.builtin && (
@@ -933,23 +937,6 @@ function ActivityEditor({ activity, onSave, onCancel }: {
   const [rounds, setRounds] = useState(activity.rounds ?? 5);
   const [storyId, setStoryId] = useState(activity.storyId ?? '');
   const [matchGameId, setMatchGameId] = useState(activity.matchGameId ?? '');
-  const [diffFilter, setDiffFilter] = useState<number | null>(null);
-  const [catFilter, setCatFilter] = useState<string | null>(null);
-
-  const filteredWords = words.filter(w => {
-    if (diffFilter !== null && w.difficulty !== diffFilter) return false;
-    if (catFilter !== null && w.category !== catFilter) return false;
-    return true;
-  });
-
-  function toggleWord(id: string) {
-    setWordIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  }
-  function selectAllFiltered() {
-    const ids = filteredWords.map(w => w.id);
-    setWordIds(prev => [...new Set([...prev, ...ids])]);
-  }
-  function clearAll() { setWordIds([]); }
 
   function handleSave() {
     onSave({
@@ -1088,66 +1075,7 @@ function ActivityEditor({ activity, onSave, onCancel }: {
 
       {needsWords && (
         <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Pool de palavras ({wordIds.length} selecionadas)</label>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-            <div>
-              <span style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 600 }}>Dificuldade:</span>
-              <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                <button onClick={() => setDiffFilter(null)} style={pillBtn(diffFilter === null, '#6C5CE7')}>Todas</button>
-                {DIFFICULTIES.map(d => (
-                  <button key={d.value} onClick={() => setDiffFilter(d.value)}
-                    style={pillBtn(diffFilter === d.value, '#6C5CE7')}>{d.label}</button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <span style={{ fontSize: 10, color: 'var(--color-text-3)', fontWeight: 600 }}>Categoria:</span>
-              <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
-                <button onClick={() => setCatFilter(null)} style={pillBtn(catFilter === null, '#0984E3')}>Todas</button>
-                {CATEGORIES.map(c => (
-                  <button key={c} onClick={() => setCatFilter(c)}
-                    style={pillBtn(catFilter === c, '#0984E3')}>{c}</button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-            <button onClick={selectAllFiltered} style={{
-              padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-              background: '#E8F5E9', color: '#00B894', border: 'none', cursor: 'pointer',
-              display: 'inline-flex', alignItems: 'center', gap: 4,
-            }}><Check size={12} /> Selecionar filtradas</button>
-            <button onClick={clearAll} style={{
-              padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-              background: '#FFEBEE', color: '#E53935', border: 'none', cursor: 'pointer',
-              display: 'inline-flex', alignItems: 'center', gap: 4,
-            }}><Trash2 size={12} /> Limpar</button>
-          </div>
-          <div style={{
-            maxHeight: 200, overflowY: 'auto',
-            border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-md)',
-            padding: 8, display: 'flex', flexWrap: 'wrap', gap: 6,
-          }}>
-            {filteredWords.map(w => {
-              const selected = wordIds.includes(w.id);
-              return (
-                <button key={w.id} onClick={() => toggleWord(w.id)} style={{
-                  padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 600,
-                  border: `2px solid ${selected ? '#6C5CE7' : 'var(--color-border)'}`,
-                  background: selected ? '#6C5CE715' : 'var(--color-surface)',
-                  color: selected ? '#6C5CE7' : 'var(--color-text-2)',
-                  cursor: 'pointer', outline: 'none', transition: 'all .1s',
-                }}>
-                  {w.emoji} {w.word}
-                </button>
-              );
-            })}
-            {filteredWords.length === 0 && (
-              <span style={{ fontSize: 12, color: 'var(--color-text-3)', padding: 8 }}>
-                Nenhuma palavra com esses filtros.
-              </span>
-            )}
-          </div>
+          <WordPickerField value={wordIds} onChange={setWordIds} />
         </div>
       )}
 
