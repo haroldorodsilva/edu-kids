@@ -1,5 +1,5 @@
-import { useMemo, useRef, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useMemo, useRef, useEffect, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Check, Lock, Gamepad2, Star, Pencil, Undo2 } from 'lucide-react';
 import { useTracksByAge, useTrackProgress } from '../../shared/queries/tracks.queries';
 import type { AgeGroup } from '../../shared/tracks/types';
@@ -103,14 +103,112 @@ function segD(p: NodeLayout, c: NodeLayout): string {
   return `M ${p.cx},${p.cy} C ${p.cx},${p.cy + t} ${c.cx},${c.cy - t} ${c.cx},${c.cy}`;
 }
 
+// ─── Decorative terrain layer ─────────────────────────────────
+function TerrainLayer({ totalH, color }: { totalH: number; color: string }) {
+  const decorations = useMemo(() => {
+    const items: Array<{ type: 'cloud' | 'star' | 'tree'; x: number; y: number; size: number; opacity: number }> = [];
+    const positions = [
+      { x: 12, y: 0.08 }, { x: 78, y: 0.12 }, { x: 20, y: 0.22 },
+      { x: 82, y: 0.30 }, { x: 8,  y: 0.40 }, { x: 88, y: 0.45 },
+      { x: 15, y: 0.55 }, { x: 75, y: 0.62 }, { x: 5,  y: 0.70 },
+      { x: 85, y: 0.78 }, { x: 18, y: 0.87 }, { x: 80, y: 0.93 },
+    ];
+    positions.forEach(({ x, y }, i) => {
+      items.push({
+        type: (['cloud', 'star', 'tree'] as const)[i % 3],
+        x: (x / 100) * PATH_W,
+        y: y * totalH,
+        size: 14 + (i % 3) * 4,
+        opacity: 0.10 + (i % 4) * 0.03,
+      });
+    });
+    return items;
+  }, [totalH]);
+
+  return (
+    <svg
+      width={PATH_W} height={totalH}
+      style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible', pointerEvents: 'none' }}
+    >
+      {decorations.map((d, i) => {
+        if (d.type === 'cloud') {
+          return (
+            <g key={i} transform={`translate(${d.x},${d.y})`} opacity={d.opacity}>
+              <ellipse cx={0} cy={0} rx={d.size} ry={d.size * 0.55} fill="white" />
+              <ellipse cx={-d.size * 0.5} cy={d.size * 0.1} rx={d.size * 0.6} ry={d.size * 0.4} fill="white" />
+              <ellipse cx={d.size * 0.5} cy={d.size * 0.1} rx={d.size * 0.55} ry={d.size * 0.38} fill="white" />
+            </g>
+          );
+        }
+        if (d.type === 'tree') {
+          return (
+            <g key={i} transform={`translate(${d.x},${d.y})`} opacity={d.opacity}>
+              <polygon points={`0,${-d.size} ${-d.size * 0.7},${d.size * 0.4} ${d.size * 0.7},${d.size * 0.4}`} fill={color} />
+              <rect x={-d.size * 0.15} y={d.size * 0.4} width={d.size * 0.3} height={d.size * 0.5} fill={color} />
+            </g>
+          );
+        }
+        return (
+          <text key={i} x={d.x} y={d.y} fontSize={d.size} opacity={d.opacity} textAnchor="middle" fill="white">★</text>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ─── Celebration particle overlay ──────────────────────────────
+function CelebrationOverlay({ cx, cy }: { cx: number; cy: number }) {
+  const particles = useMemo(() =>
+    Array.from({ length: 12 }, (_, i) => ({
+      angle: (i / 12) * Math.PI * 2,
+      dist: 44 + (i % 3) * 18,
+      emoji: (['⭐', '✨', '🌟', '💫'][i % 4]),
+      size: 14 + (i % 3) * 6,
+    })),
+  []);
+
+  return (
+    <div style={{ position: 'absolute', left: cx - 80, top: cy - 80, width: 160, height: 160, pointerEvents: 'none', zIndex: 10 }}>
+      {particles.map((p, i) => (
+        <span
+          key={i}
+          className="animate-pop"
+          style={{
+            position: 'absolute',
+            left: 80 + Math.cos(p.angle) * p.dist - p.size / 2,
+            top:  80 + Math.sin(p.angle) * p.dist - p.size / 2,
+            fontSize: p.size,
+            animationDelay: `${i * 40}ms`,
+            animationDuration: '0.6s',
+          }}
+        >
+          {p.emoji}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 // ─── Component ─────────────────────────────────────────────────
 export default function TrackPathScreen() {
   const navigate = useNavigate();
   const { ageGroup } = useParams<{ ageGroup: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const age = (ageGroup as AgeGroup) || '3-4';
   const theme = AGE_THEME[age] ?? AGE_THEME['3-4'];
 
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Celebration: shows star burst over a just-completed lesson node
+  const completedLessonId = searchParams.get('completed');
+  const [celebratingId, setCelebratingId] = useState<string | null>(completedLessonId);
+
+  useEffect(() => {
+    if (!completedLessonId) return;
+    setSearchParams({}, { replace: true });
+    const t = setTimeout(() => setCelebratingId(null), 2000);
+    return () => clearTimeout(t);
+  }, [completedLessonId]);
 
   const { data: tracks = [] } = useTracksByAge(age);
   const { data: progressList = [] } = useTrackProgress(age);
@@ -271,6 +369,9 @@ export default function TrackPathScreen() {
       <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <div style={{ position: 'relative', margin: '0 auto', width: PATH_W, height: totalH }}>
 
+          {/* ── Decorative terrain layer ───────────────────────── */}
+          <TerrainLayer totalH={totalH} color={theme.color} />
+
           {/* ── SVG track ─────────────────────────────────────── */}
           <svg
             width={PATH_W}
@@ -358,7 +459,7 @@ export default function TrackPathScreen() {
                   filter: 'blur(20px)',
                 }} />
                 <span style={{ fontSize: 38, lineHeight: 1, flexShrink: 0 }}>{banner.unit.emoji}</span>
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.60)',
                     textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2,
@@ -371,12 +472,36 @@ export default function TrackPathScreen() {
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.70)', marginTop: 2 }}>
                     {banner.unit.subtitle}
                   </div>
+                  {(() => {
+                    const total = banner.unit.lessons.length;
+                    const done = banner.unit.lessons.filter(l => l.id in completedLessons).length;
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
+                        <div style={{ flex: 1, height: 3, borderRadius: 999, background: 'rgba(255,255,255,0.20)' }}>
+                          <div style={{
+                            height: '100%', borderRadius: 999,
+                            background: '#FDCB6E',
+                            width: `${total > 0 ? (done / total) * 100 : 0}%`,
+                            transition: 'width .6s ease',
+                          }} />
+                        </div>
+                        <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          {done}/{total}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             ))
           }
 
           {/* ── Lesson nodes ──────────────────────────────────── */}
+          {/* ── Celebration overlay ───────────────────────────── */}
+          {celebratingId && nodes.filter(n => n.lesson.id === celebratingId).map(n => (
+            <CelebrationOverlay key={`cel-${n.lesson.id}`} cx={n.cx} cy={n.cy} />
+          ))}
+
           {nodes.map((node, idx) => {
             const result = completedLessons[node.lesson.id];
             const unlocked = isLessonUnlocked(idx, nodes, completedLessons);
@@ -455,9 +580,9 @@ export default function TrackPathScreen() {
                     {node.lesson.title}
                   </span>
                   {result && (
-                    <div style={{ display: 'flex', gap: 1, marginTop: 3 }}>
+                    <div style={{ display: 'flex', gap: 2, marginTop: 3 }}>
                       {[1, 2, 3].map(s => (
-                        <Star key={s} size={11} fill={s <= result.stars ? '#FFD700' : 'transparent'} color={s <= result.stars ? '#FFD700' : 'rgba(255,255,255,0.3)'} />
+                        <Star key={s} size={14} fill={s <= result.stars ? '#FFD700' : 'transparent'} color={s <= result.stars ? '#FFD700' : 'rgba(255,255,255,0.4)'} />
                       ))}
                     </div>
                   )}

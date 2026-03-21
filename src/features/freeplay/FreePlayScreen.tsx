@@ -9,6 +9,7 @@ import type { Word } from '../../shared/data/words';
 import LucideIcon from '../../shared/components/ui/LucideIcon';
 import { DIFFICULTY_LEVELS, type DifficultyLevel, getDifficulty } from '../../shared/config/difficultyLevels';
 import type { GameType } from '../../shared/progression/types';
+import { useSessionStore } from '../../shared/stores/sessionStore';
 
 interface Props {
   onSelect: (game: string, wordPool?: Word[], rounds?: number) => void;
@@ -17,38 +18,57 @@ interface Props {
 }
 
 const CATEGORY_FILTERS = [
-  { id: '',           label: 'Todos',      Icon: Target },
-  { id: 'animal',     label: 'Animais',    Icon: PawPrint },
-  { id: 'comida',     label: 'Comida',     Icon: Apple },
-  { id: 'objeto',     label: 'Objetos',    Icon: Package },
-  { id: 'natureza',   label: 'Natureza',   Icon: Leaf },
-  { id: 'lugar',      label: 'Lugares',    Icon: Home },
-  { id: 'pessoa',     label: 'Pessoas',    Icon: User },
-  { id: 'corpo',      label: 'Corpo',      Icon: Footprints },
-  { id: 'cor',        label: 'Cores',      Icon: Palette },
-  { id: 'escola',     label: 'Escola',     Icon: BookOpen },
-  { id: 'transporte', label: 'Transporte', Icon: Car },
-  { id: 'roupa',      label: 'Roupas',     Icon: Shirt },
+  { id: '',           label: 'Todos',      emoji: '🎯', Icon: Target },
+  { id: 'animal',     label: 'Animais',    emoji: '🐾', Icon: PawPrint },
+  { id: 'comida',     label: 'Comida',     emoji: '🍎', Icon: Apple },
+  { id: 'objeto',     label: 'Objetos',    emoji: '📦', Icon: Package },
+  { id: 'natureza',   label: 'Natureza',   emoji: '🍃', Icon: Leaf },
+  { id: 'lugar',      label: 'Lugares',    emoji: '🏠', Icon: Home },
+  { id: 'pessoa',     label: 'Pessoas',    emoji: '👤', Icon: User },
+  { id: 'corpo',      label: 'Corpo',      emoji: '👣', Icon: Footprints },
+  { id: 'cor',        label: 'Cores',      emoji: '🎨', Icon: Palette },
+  { id: 'escola',     label: 'Escola',     emoji: '📖', Icon: BookOpen },
+  { id: 'transporte', label: 'Transporte', emoji: '🚗', Icon: Car },
+  { id: 'roupa',      label: 'Roupas',     emoji: '👕', Icon: Shirt },
 ];
 
+// Maps the difficulty level to stars count for display
+const DIFFICULTY_STARS: Record<DifficultyLevel, number> = {
+  easy: 1, medium: 2, hard: 3, endless: 0,
+};
+
+// Age-aware default difficulty
+function defaultDifficultyForAge(age: string | null): DifficultyLevel {
+  if (age === '3-4') return 'easy';
+  if (age === '9-10') return 'hard';
+  return 'medium';
+}
+
 export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
+  const { selectedAge } = useSessionStore();
   const [catFilter, setCatFilter] = useState('');
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(
+    defaultDifficultyForAge(selectedAge),
+  );
 
   const diffConfig = getDifficulty(difficulty);
-  const filteredByCategory = catFilter ? words.filter(w => w.category === catFilter) : [...words];
+  const allWords = words as unknown as Word[];
+  const filteredByCategory = catFilter ? allWords.filter(w => w.category === catFilter) : [...allWords];
   const filteredWords = filteredByCategory.filter(w => diffConfig.wordDifficulties.includes(w.difficulty as 1 | 2 | 3));
   const wordPool = filteredWords.length >= 4 ? filteredWords : filteredByCategory;
 
   function handleSelect(gameId: string) {
     const gameOverride = diffConfig.overrides[gameId as GameType];
     const rounds = gameOverride?.rounds;
-    onSelect(gameId, wordPool.length < words.length ? wordPool : undefined, rounds);
+    onSelect(gameId, wordPool.length < allWords.length ? wordPool : undefined, rounds);
   }
 
   const availableCategories = CATEGORY_FILTERS.filter(cat =>
-    !cat.id || words.filter(w => w.category === cat.id).length >= 4
+    !cat.id || allWords.filter(w => w.category === cat.id).length >= 4
   );
+
+  // Word count per game card (based on current filter/difficulty)
+  const gameWordCount = wordPool.length;
 
   const subtitle = catFilter
     ? `${filteredWords.length} palavra${filteredWords.length !== 1 ? 's' : ''} · ${
@@ -119,34 +139,57 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
           </button>
         </div>
 
-        {/* ── Difficulty selector inside header ─────────────── */}
+        {/* ── Difficulty cards ─────────────────────────────── */}
         <div style={{
-          display: 'flex', gap: 6, marginTop: 'var(--spacing-sm)',
-          justifyContent: 'center', flexWrap: 'wrap',
+          display: 'flex', gap: 8, marginTop: 'var(--spacing-md)',
+          justifyContent: 'center',
         }}>
           {DIFFICULTY_LEVELS.map(d => {
             const active = difficulty === d.id;
+            const stars = DIFFICULTY_STARS[d.id];
             return (
               <button
                 key={d.id}
                 onClick={() => setDifficulty(d.id)}
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-full)',
-                  border: `2px solid ${active ? '#fff' : 'rgba(255,255,255,.3)'}`,
-                  background: active ? 'rgba(255,255,255,.25)' : 'transparent',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: 4,
+                  minWidth: 68, minHeight: 80,
+                  flex: 1,
+                  borderRadius: 16,
+                  border: `3px solid ${active ? '#fff' : 'rgba(255,255,255,.25)'}`,
+                  background: active ? 'rgba(255,255,255,.28)' : 'rgba(255,255,255,.08)',
                   color: '#fff',
-                  fontFamily: 'var(--font-family)',
-                  fontWeight: active ? 700 : 500,
-                  fontSize: 'var(--font-size-xs)',
                   cursor: 'pointer',
+                  padding: '10px 4px 8px',
+                  backdropFilter: active ? 'blur(6px)' : 'none',
+                  boxShadow: active ? '0 0 0 2px rgba(255,255,255,.15), 0 4px 16px rgba(0,0,0,.18)' : 'none',
                   transition: 'all .15s ease',
-                  backdropFilter: active ? 'blur(4px)' : 'none',
+                  position: 'relative',
+                  outline: 'none',
                 }}
               >
-                <LucideIcon name={d.icon} size={13} />
-                {d.label}
+                {active && (
+                  <span style={{
+                    position: 'absolute', top: -8, right: -8,
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: '#FDCB6E', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10, lineHeight: 1,
+                  }}>✓</span>
+                )}
+                <LucideIcon name={d.icon} size={22} color="#fff" />
+                <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-family)' }}>
+                  {d.label}
+                </span>
+                {stars > 0 ? (
+                  <div style={{ display: 'flex', gap: 2 }}>
+                    {Array.from({ length: 3 }, (_, i) => (
+                      <span key={i} style={{ fontSize: 9, opacity: i < stars ? 1 : 0.3 }}>★</span>
+                    ))}
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 12, opacity: 0.9 }}>∞</span>
+                )}
               </button>
             );
           })}
@@ -171,15 +214,15 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
               key={cat.id || '__all'}
               onClick={() => setCatFilter(cat.id)}
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-                padding: '8px 14px',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '10px 18px',
                 borderRadius: 'var(--radius-full)',
                 border: `2px solid ${active ? 'var(--color-primary)' : 'var(--color-border)'}`,
                 background: active ? 'var(--color-primary)' : 'var(--color-surface)',
                 color: active ? '#fff' : 'var(--color-text-2)',
                 fontFamily: 'var(--font-family)',
                 fontWeight: 600,
-                fontSize: 'var(--font-size-xs)',
+                fontSize: 'var(--font-size-sm)',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
@@ -187,7 +230,7 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
                 transition: 'all .15s ease',
               }}
             >
-              <cat.Icon size={14} />
+              <span style={{ fontSize: 15 }}>{cat.emoji}</span>
               {cat.label}
             </button>
           );
@@ -212,7 +255,7 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
               background: game.gradient,
               border: 'none',
               cursor: 'pointer',
-              padding: 'var(--spacing-lg) var(--spacing-md)',
+              padding: 'var(--spacing-lg) var(--spacing-md) var(--spacing-sm)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -242,7 +285,7 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
               width: 72, height: 72,
               borderRadius: '50%',
               background: 'rgba(255,255,255,.18)',
-              top: '18%',
+              top: '14%',
               filter: 'blur(1px)',
             }} />
             <LucideIcon
@@ -263,6 +306,19 @@ export default function FreePlayScreen({ onSelect, onBack, onAdmin }: Props) {
               zIndex: 1,
             }}>
               {game.label}
+            </span>
+            {/* Word count badge */}
+            <span style={{
+              position: 'absolute', bottom: 6, left: 0, right: 0,
+              textAlign: 'center',
+              fontSize: 9,
+              fontWeight: 700,
+              color: game.textColor,
+              opacity: 0.65,
+              fontFamily: 'var(--font-family)',
+              zIndex: 1,
+            }}>
+              {gameWordCount} palavras
             </span>
           </button>
         ))}

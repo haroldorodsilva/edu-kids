@@ -289,3 +289,7 @@ body {
   100% { stroke-opacity: 0;   }
 }
 .anim-wrong-line { animation: wrong-line 0.55s ease-out forwards; }
+
+/* ── Age-group font scaling ────────────────────────────────────── */
+[data-age="3-4"] { font-size: 1.15em; }
+[data-age="9-10"] { font-size: 0.95em; }

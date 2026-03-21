@@ -148,7 +148,7 @@ export default function TrackLessonRunner() {
           </div>
           <p className="text-gray-600 mb-6">+{stars * 30} XP</p>
           <button
-            onClick={() => navigate(`/tracks/${age}`)}
+            onClick={() => navigate(`/tracks/${age}?completed=${lesson.id}`)}
             className="w-full py-4 rounded-2xl font-bold text-xl text-white"
             style={{ backgroundColor: unit.color }}
           >
